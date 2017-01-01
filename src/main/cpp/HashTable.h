@@ -2,7 +2,6 @@
 
 #include <cstdlib>
 #include <cstdint>
-#include "Bucket.h"
 
 template <typename T>
 class HashFunction {
@@ -24,12 +23,15 @@ public:
 
 
 static const size_t HASH_INIT_SIZE = 4;
+static const size_t BUCKET_INIT_SIZE = 2;
 
 template <typename T>
 class HashTable {
+private:
+	struct Bucket;
 public:
 	HashTable() : _size(HASH_INIT_SIZE) {
-		_buckets = (Bucket<T>**) malloc(sizeof(Bucket<T>*) * _size);
+		_buckets = (Bucket**) malloc(sizeof(Bucket*) * _size);
 		for (size_t i = 0 ; i < _size ; i++)
 			_buckets[i] = NULL;
 	}
@@ -37,7 +39,7 @@ public:
 	void put(T elem) {
 		size_t index = _hf.hash(elem) % _size;
 		if (_buckets[index] == NULL) {
-			_buckets[index] = new Bucket<T>;
+			_buckets[index] = new Bucket;
 		}
 		_buckets[index]->put(elem);
 	}
@@ -52,7 +54,34 @@ public:
 	}
 
 private:
-	Bucket<T>**     _buckets;
+	Bucket**     _buckets;
 	size_t          _size;
 	HashFunction<T> _hf;
+};
+
+
+template <typename T>
+struct HashTable<T>::Bucket {
+	Bucket() : size(BUCKET_INIT_SIZE), count(0) {
+		buffer = (T*) malloc(sizeof(T) * size);
+	}
+
+	void put(T elem) {
+		if (count == size) {
+			size *= 2;
+			buffer = (T*) realloc(buffer, sizeof(T) * size);
+		}
+		buffer[count] = elem;
+		count++;
+	}
+
+	void debug() {
+		for (size_t i = 0 ; i < count ; ++i)
+			std::cout << buffer[i] << " ";
+		std::cout << std::endl;
+	}
+
+	T*     buffer;
+	size_t size;
+	size_t count;
 };
