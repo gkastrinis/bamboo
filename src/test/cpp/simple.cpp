@@ -10,8 +10,14 @@ int main(int argc, char** argv) {
 	time_t t = (argc != 2) ? time(NULL) : atoi(argv[1]);
 	srand(t);
 	cout << "Seed: " << t << endl;
-	for (uint64_t i = 0 ; i < 20 ; ++i)
-		ht.put(rand() % 10000);
+	for (uint64_t i = 0 ; i < 20 ; ++i) {
+		uint64_t e = rand() % 10000;
+		ht.put(e);
+		if (!ht.get(e)) {
+			cerr << i << ") Query for " << e << " failed!" << endl;
+			return 1;
+		}
+	}
 	//ht.debug();
 	//ht.put(-121);
 }

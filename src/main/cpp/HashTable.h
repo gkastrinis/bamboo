@@ -83,6 +83,12 @@ public:
 		}
 	}
 
+	bool get(T elem) {
+		uint64_t bucketNum = getBucketNum(elem);
+		Bucket* b = _buckets[bucketNum];
+		return b->get(elem);
+	}
+
 
 	void debug() {
 		for (uint64_t i = 0 ; i < _size ; ++i) {
@@ -128,6 +134,12 @@ struct HashTable<T>::Bucket {
 		}
 		buffer[count] = elem;
 		count++;
+	}
+
+	bool get(T elem) {
+		for (uint64_t i = 0 ; i < count ; ++i)
+			if (buffer[i] == elem) return true;
+		return false;
 	}
 
 	void debug() {
