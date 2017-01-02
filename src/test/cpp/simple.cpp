@@ -1,20 +1,17 @@
 #include <iostream>
 #include <cstdint>
+#include <ctime>
 #include "HashTable.h"
 using namespace std;
 
-int main(void) {
+int main(int argc, char** argv) {
 	HashTable<uint64_t> ht;
 
-	ht.put(10);
-	ht.put(23131);
-	ht.put(45645);
-	ht.put(46546);
-	ht.put(23123);
-	ht.put(213);
-	ht.put(312312);
-	ht.put(6565);
-	ht.put(1200);
-	ht.debug();
+	time_t t = (argc != 2) ? time(NULL) : atoi(argv[1]);
+	srand(t);
+	cout << "Seed: " << t << endl;
+	for (uint64_t i = 0 ; i < 20 ; ++i)
+		ht.put(rand() % 10000);
+	//ht.debug();
 	//ht.put(-121);
 }
