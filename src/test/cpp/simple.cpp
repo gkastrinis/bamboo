@@ -12,6 +12,7 @@ int main(int argc, char** argv) {
 	cout << "Seed: " << t << endl;
 	for (uint64_t i = 0 ; i < 20 ; ++i) {
 		uint64_t e = rand() % 10000;
+		cout << "Put(" << e << ")" << endl;
 		ht.put(e);
 		if (!ht.get(e)) {
 			cerr << i << ") Query for " << e << " failed!" << endl;
@@ -19,5 +20,4 @@ int main(int argc, char** argv) {
 		}
 	}
 	//ht.debug();
-	//ht.put(-121);
 }
