@@ -18,6 +18,8 @@ public:
 		uint64_t bucketNum = getBucketNum(elem);
 		Bucket* b = _buckets[bucketNum];
 
+		if (b->get(elem)) return;
+
 		// Double size
 		if (b->isFull() and b->lDepth == _gDepth) {
 			_gDepth++;
