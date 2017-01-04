@@ -42,41 +42,33 @@ public:
 			_buckets = (Bucket**) realloc(_buckets, sizeof(Bucket*) * _size);
 			for (uint64_t i = _size ; i > 0 ; i-=2)
 				_buckets[i-1] = _buckets[i-2] = _buckets[(i-1)/2];
+			bucketNum *= 2;
 		}
 
 		// Split current bucket
 		if (b->isFull() and b->lDepth < _gDepth) {
-			Bucket* b1 = new Bucket;
-			Bucket* b2 = new Bucket;
+			Bucket* b1 = new Bucket(b->lDepth + 1);
+			Bucket* b2 = new Bucket(b->lDepth + 1);
+			// Number of blocks sharing a pointer
+			uint64_t n = 2 << (_gDepth - b1->lDepth);
+
+			uint64_t start = n*(bucketNum/n);
+			uint64_t end = start + (n/2);
+			for (uint64_t i = start ; i < end ; ++i)
+				_buckets[i] = b1;
+			start = end;
+			end = start + (n/2);
+			for (uint64_t i = start ; i < end ; ++i)
+				_buckets[i] = b2;
+
 			// Rehash every element in original bucket using the new global depth
 			for (uint64_t i = 0 ; i < b->count ; ++i) {
 				T tElem = b->buffer[i];
-				uint64_t tBucketNum = getBucketNum(tElem);
-				// Last bit is 0
-				if (tBucketNum % 2 == 1)
-					b1->put(tElem);
-				else
-					b2->put(tElem);
+				_buckets[getBucketNum(tElem)]->put(tElem);
 			}
-			// Repeat for current element (need to rehash)
-			uint64_t tBucketNum = getBucketNum(elem);
-			// Last bit is 0
-			if (tBucketNum % 2 == 0)
-				b1->put(elem);
-			else
-				b2->put(elem);
-
-			// Last bit is 0
-			if (bucketNum % 2 == 0) {
-				_buckets[bucketNum]   = b1;
-				_buckets[bucketNum+1] = b2;
-			}
-			else {
-				_buckets[bucketNum-1] = b1;
-				_buckets[bucketNum]   = b2;
-			}
-			b1->lDepth = b2->lDepth = b->lDepth + 1;
 			delete b;
+
+			put(elem);
 		}
 		else {
 			b->put(elem);
@@ -92,7 +84,7 @@ public:
 
 	void debug() {
 		for (uint64_t i = 0 ; i < _size ; ++i) {
-			std::cout << "bucket " << i << std::endl;
+			std::cout << "bucket " << i << " (" << _buckets[i] << ")" << std::endl;
 			_buckets[i]->debug();
 		}
 	}
@@ -105,8 +97,9 @@ private:
 
 	uint64_t getBucketNum(T elem) {
 		uint64_t h = _hf.hash(elem);
-		// Create a bit string with 1 at the first _gDepth bits
-		return h & ((1 << _gDepth) - 1);
+		// (h >> (64 - _gDepth): Check _gDepth most significant bits
+		// (1 << _gDepth) - 1: Create a bit string with 1 at the first _gDepth bits
+		return (h >> (64 - _gDepth)) & ((1 << _gDepth) - 1);
 	}
 };
 
@@ -115,7 +108,7 @@ private:
 
 template <typename T>
 struct HashTable<T>::Bucket {
-	Bucket() : size(BUCKET_INIT_SIZE), count(0), lDepth(0) {
+	Bucket(uint64_t depth = 0) : size(BUCKET_INIT_SIZE), count(0), lDepth(depth) {
 		buffer = (T*) malloc(sizeof(T) * size);
 	}
 
@@ -124,7 +117,7 @@ struct HashTable<T>::Bucket {
 	}
 
 	bool isFull() {
-		return count == size;
+		return count >= size;
 	}
 
 	void put(T elem) {
