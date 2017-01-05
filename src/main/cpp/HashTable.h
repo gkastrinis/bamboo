@@ -9,9 +9,9 @@ class HashTable {
 private:
 	struct Bucket;
 public:
-	HashTable() : _size(1), _gDepth(0) {
+	HashTable(uint64_t bucketSize) : _size(1), _gDepth(0), _bucketSize(bucketSize) {
 		_buckets = (Bucket**) malloc(sizeof(Bucket*));
-		_buckets[0] = new Bucket;
+		_buckets[0] = new Bucket(_bucketSize);
 	}
 
 	void put(T elem) {
@@ -32,8 +32,8 @@ public:
 
 		// Split current bucket
 		if (b->isFull() and b->lDepth < _gDepth) {
-			Bucket* b1 = new Bucket(b->lDepth + 1);
-			Bucket* b2 = new Bucket(b->lDepth + 1);
+			Bucket* b1 = new Bucket(_bucketSize, b->lDepth + 1);
+			Bucket* b2 = new Bucket(_bucketSize, b->lDepth + 1);
 			// Number of blocks sharing a pointer
 			uint64_t n = 2 << (_gDepth - b1->lDepth);
 
@@ -79,6 +79,7 @@ private:
 	Bucket**        _buckets;
 	uint64_t        _size;
 	uint64_t        _gDepth;
+	uint64_t        _bucketSize;
 
 	uint64_t getBucketNum(T elem) {
 		uint64_t h = _hf.hash(elem);
@@ -89,11 +90,9 @@ private:
 };
 
 
-#define BUCKET_INIT_SIZE 1
-
 template <typename T>
 struct HashTable<T>::Bucket {
-	Bucket(uint64_t depth = 0) : size(BUCKET_INIT_SIZE), count(0), lDepth(depth) {
+	Bucket(uint64_t initSize, uint64_t depth = 0) : size(initSize), count(0), lDepth(depth) {
 		buffer = (T*) malloc(sizeof(T) * size);
 	}
 
