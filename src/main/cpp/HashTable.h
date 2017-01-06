@@ -9,7 +9,7 @@ class HashTable {
 private:
 	struct Bucket;
 public:
-	HashTable(uint64_t bucketSize) : _size(1), _gDepth(0), _bucketSize(bucketSize) {
+	HashTable(uint64_t bucketSize) : _size(1), _count(0), _gDepth(0), _bucketSize(bucketSize) {
 		_buckets = (Bucket**) malloc(sizeof(Bucket*));
 		_buckets[0] = new Bucket(_bucketSize);
 	}
@@ -54,6 +54,7 @@ public:
 			}
 			else {
 				b->put(elem);
+				_count++;
 				return;
 			}
 		}
@@ -64,6 +65,8 @@ public:
 		Bucket* b = _buckets[bucketNum];
 		return b->get(elem);
 	}
+
+	uint64_t count() { return _count; }
 
 
 	void debug() {
@@ -77,6 +80,7 @@ private:
 	HashFunction<T> _hf;
 	Bucket**        _buckets;
 	uint64_t        _size;
+	uint64_t        _count;
 	uint64_t        _gDepth;
 	uint64_t        _bucketSize;
 
