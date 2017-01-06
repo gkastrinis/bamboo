@@ -15,48 +15,47 @@ public:
 	}
 
 	void put(T elem) {
-		uint64_t bucketNum = getBucketNum(elem);
-		Bucket* b = _buckets[bucketNum];
+		while (true) {
+			uint64_t bucketNum = getBucketNum(elem);
+			Bucket* b = _buckets[bucketNum];
 
-		if (b->get(elem)) return;
+			// Element already in the hash table
+			if (b->get(elem)) return;
 
-		// Double size
-		if (b->isFull() and b->lDepth == _gDepth) {
-			_gDepth++;
-			_size *= 2;
-			_buckets = (Bucket**) realloc(_buckets, sizeof(Bucket*) * _size);
-			for (uint64_t i = _size ; i > 0 ; i-=2)
-				_buckets[i-1] = _buckets[i-2] = _buckets[(i-1)/2];
-			bucketNum *= 2;
-		}
-
-		// Split current bucket
-		if (b->isFull() and b->lDepth < _gDepth) {
-			Bucket* b1 = new Bucket(_bucketSize, b->lDepth + 1);
-			Bucket* b2 = new Bucket(_bucketSize, b->lDepth + 1);
-			// Number of blocks sharing a pointer
-			uint64_t n = 2 << (_gDepth - b1->lDepth);
-
-			uint64_t start = n*(bucketNum/n);
-			uint64_t end = start + (n/2);
-			for (uint64_t i = start ; i < end ; ++i)
-				_buckets[i] = b1;
-			start = end;
-			end = start + (n/2);
-			for (uint64_t i = start ; i < end ; ++i)
-				_buckets[i] = b2;
-
-			// Rehash every element in original bucket using the new global depth
-			for (uint64_t i = 0 ; i < b->count ; ++i) {
-				T tElem = b->buffer[i];
-				_buckets[getBucketNum(tElem)]->put(tElem);
+			// Double size
+			if (b->isFull() and b->lDepth == _gDepth) {
+				_gDepth++;
+				_size *= 2;
+				_buckets = (Bucket**) realloc(_buckets, sizeof(Bucket*) * _size);
+				for (uint64_t i = _size ; i > 0 ; i-=2)
+					_buckets[i-1] = _buckets[i-2] = _buckets[(i-1)/2];
+				bucketNum *= 2;
 			}
-			delete b;
 
-			put(elem);
-		}
-		else {
-			b->put(elem);
+			// Split current bucket
+			if (b->isFull() and b->lDepth < _gDepth) {
+				Bucket* b1 = new Bucket(_bucketSize, b->lDepth + 1);
+				Bucket* b2 = new Bucket(_bucketSize, b->lDepth + 1);
+				// Number of blocks sharing a pointer
+				uint64_t n = 2 << (_gDepth - b1->lDepth);
+
+				uint64_t start  = n * (bucketNum/n);
+				uint64_t end    = start + n;
+				uint64_t middle = start + ((end - start) / 2);
+				for (uint64_t i = start ; i < end ; ++i)
+					_buckets[i] = (i < middle) ? b1 : b2;
+
+				// Rehash every element in original bucket using the new global depth
+				for (uint64_t i = 0 ; i < b->count ; ++i) {
+					T tElem = b->buffer[i];
+					_buckets[getBucketNum(tElem)]->put(tElem);
+				}
+				delete b;
+			}
+			else {
+				b->put(elem);
+				return;
+			}
 		}
 	}
 
