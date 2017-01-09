@@ -10,7 +10,7 @@ int main(int argc, char** argv) {
 	time_t t = (argc != 2) ? time(NULL) : atoi(argv[1]);
 	srand(t);
 	cout << "Seed: " << t << endl;
-	for (uint64_t i = 0 ; ht.count() < 1000000 ; ++i) {
+	for (uint64_t i = 0 ; ht.size() < 1000000 ; ++i) {
 		uint64_t e = rand() % 10000000;
 		//cout << "Put(" << e << ")" << endl;
 		ht.put(e);
@@ -19,6 +19,6 @@ int main(int argc, char** argv) {
 			return 1;
 		}
 	}
-	cout << ht.count() << endl;
+	cout << ht.size() << endl;
 	//ht.debug();
 }

@@ -9,9 +9,9 @@ class HashTable {
 private:
 	struct Bucket;
 public:
-	HashTable(uint64_t bucketSize) : _size(1), _count(0), _gDepth(0), _bucketSize(bucketSize) {
+	HashTable(uint64_t bucketSize) : _capacity(1), _size(0), _gDepth(0), _bucketCap(bucketSize) {
 		_buckets = (Bucket**) malloc(sizeof(Bucket*));
-		_buckets[0] = new Bucket(_bucketSize);
+		_buckets[0] = new Bucket(_bucketCap);
 	}
 
 	void put(T elem) {
@@ -25,17 +25,17 @@ public:
 			// Double size
 			if (b->isFull() and b->lDepth == _gDepth) {
 				_gDepth++;
-				_size *= 2;
-				_buckets = (Bucket**) realloc(_buckets, sizeof(Bucket*) * _size);
-				for (uint64_t i = _size ; i > 0 ; i-=2)
+				_capacity *= 2;
+				_buckets = (Bucket**) realloc(_buckets, sizeof(Bucket*) * _capacity);
+				for (uint64_t i = _capacity ; i > 0 ; i-=2)
 					_buckets[i-1] = _buckets[i-2] = _buckets[(i-1)/2];
 				bucketNum *= 2;
 			}
 
 			// Split current bucket
 			if (b->isFull() and b->lDepth < _gDepth) {
-				Bucket* b1 = new Bucket(_bucketSize, b->lDepth + 1);
-				Bucket* b2 = new Bucket(_bucketSize, b->lDepth + 1);
+				Bucket* b1 = new Bucket(_bucketCap, b->lDepth + 1);
+				Bucket* b2 = new Bucket(_bucketCap, b->lDepth + 1);
 				// Number of blocks sharing a pointer
 				uint64_t n = 2 << (_gDepth - b1->lDepth);
 
@@ -46,7 +46,7 @@ public:
 					_buckets[i] = (i < middle) ? b1 : b2;
 
 				// Rehash every element in original bucket using the new global depth
-				for (uint64_t i = 0 ; i < b->count ; ++i) {
+				for (uint64_t i = 0 ; i < b->size ; ++i) {
 					T tElem = b->buffer[i];
 					_buckets[getBucketNum(tElem)]->put(tElem);
 				}
@@ -54,7 +54,7 @@ public:
 			}
 			else {
 				b->put(elem);
-				_count++;
+				_size++;
 				return;
 			}
 		}
@@ -66,11 +66,11 @@ public:
 		return b->get(elem);
 	}
 
-	uint64_t count() { return _count; }
+	uint64_t size() { return _size; }
 
 
 	void debug() {
-		for (uint64_t i = 0 ; i < _size ; ++i) {
+		for (uint64_t i = 0 ; i < _capacity ; ++i) {
 			std::cout << "bucket " << i << " (" << _buckets[i] << ")" << std::endl;
 			_buckets[i]->debug();
 		}
@@ -79,10 +79,10 @@ public:
 private:
 	HashFunction<T> _hf;
 	Bucket**        _buckets;
+	uint64_t        _capacity;
 	uint64_t        _size;
-	uint64_t        _count;
 	uint64_t        _gDepth;
-	uint64_t        _bucketSize;
+	uint64_t        _bucketCap;
 
 	uint64_t getBucketNum(T elem) {
 		uint64_t h = _hf.hash(elem);
@@ -95,8 +95,8 @@ private:
 
 template <typename T>
 struct HashTable<T>::Bucket {
-	Bucket(uint64_t initSize, uint64_t depth = 0) : size(initSize), count(0), lDepth(depth) {
-		buffer = (T*) malloc(sizeof(T) * size);
+	Bucket(uint64_t initCap, uint64_t depth = 0) : capacity(initCap), size(0), lDepth(depth) {
+		buffer = (T*) malloc(sizeof(T) * capacity);
 	}
 
 	~Bucket() {
@@ -104,32 +104,32 @@ struct HashTable<T>::Bucket {
 	}
 
 	bool isFull() {
-		return count >= size;
+		return size >= capacity;
 	}
 
 	void put(T elem) {
 		if (isFull()) {
-			size *= 2;
-			buffer = (T*) realloc(buffer, sizeof(T) * size);
+			capacity *= 2;
+			buffer = (T*) realloc(buffer, sizeof(T) * capacity);
 		}
-		buffer[count] = elem;
-		count++;
+		buffer[size] = elem;
+		size++;
 	}
 
 	bool get(T elem) {
-		for (uint64_t i = 0 ; i < count ; ++i)
+		for (uint64_t i = 0 ; i < size ; ++i)
 			if (buffer[i] == elem) return true;
 		return false;
 	}
 
 	void debug() {
-		for (uint64_t i = 0 ; i < count ; ++i)
+		for (uint64_t i = 0 ; i < size ; ++i)
 			std::cout << buffer[i] << " ";
 		std::cout << std::endl;
 	}
 
 	T*       buffer;
+	uint64_t capacity;
 	uint64_t size;
-	uint64_t count;
 	uint64_t lDepth;
 };
