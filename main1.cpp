@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
 	//uint64_t values[100000];
 	//for (auto i = 0; i < 100000; i++) values[i] = rand() % 100000;
 
-	for (auto i = 0; i < 100000;) {
+	for (auto i = 0; i < sizeof(values)/sizeof(*values);) {
 		try {
 			index->put(values[i]);
 		} catch (int e) {

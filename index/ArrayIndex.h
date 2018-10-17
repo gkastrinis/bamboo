@@ -47,7 +47,6 @@ public:
 
 		if (size_ >= capacity) {
 			capacity *= 2;
-
 			if (capacity > MAX_CAPACITY) throw -1;
 
 			T *tmp = new T[capacity];
