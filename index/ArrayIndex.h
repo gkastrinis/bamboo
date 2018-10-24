@@ -78,6 +78,7 @@ public:
 		for (auto i = 0; i < size_; i++)
 			std::cout << buffer[i] << " ";
 		std::cout << std::endl;
+		std::cout << "Total: " << (int) size_ << std::endl;
 	}
 
 	const T* rawData() { return buffer; }

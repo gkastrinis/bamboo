@@ -13,8 +13,9 @@ int main(int argc, char **argv) {
 	Index<uint64_t> *index = new ArrayIndex<uint64_t>();
 
 	uint64_t values[] = {100, 42, 80, 4, 10};
-	//uint64_t values[100000];
-	//for (auto i = 0; i < 100000; i++) values[i] = rand() % 100000;
+	//int S = 100000;
+	//uint64_t values[S];
+	//for (auto i = 0; i < S; i++) values[i] = rand() % S;
 
 	for (auto i = 0; i < sizeof(values)/sizeof(*values);) {
 		try {

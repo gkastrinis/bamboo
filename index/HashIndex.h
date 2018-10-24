@@ -43,7 +43,6 @@ public:
 		while (true) {
 			auto bucketNum = getBucketNum(v);
 			auto bucket = buckets[bucketNum];
-			//std::cout << "Trying " << v << " @ " << bucketNum << std::endl;
 
 			// Value already in the hash table
 			if (bucket->contains(v)) return;
@@ -99,5 +98,6 @@ public:
 			std::cout << "bucket " << i << " (" << buckets[i] << ")" << std::endl;
 			buckets[i]->debugPrint();
 		}
+		std::cout << "Total: " << (int) size_ << std::endl;
 	}
 };
