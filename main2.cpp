@@ -1,27 +1,27 @@
-#include <ctime>
 #include "index/Index.h"
 #include "index/ArrayIndex.h"
-#include "index/HashIndex.h"
+#include "Column.h"
 
 using namespace std;
 
 int main(int argc, char **argv) {
-	time_t t = (argc != 2) ? std::time(nullptr) : atoi(argv[1]);
-	srand(t);
-	cout << "Main 2 Seed: " << t << endl;
+	auto column1 = Column<uint64_t>::mkColumn(0); // value is not important
+	Column<uint64_t> *column2Ptr, *column3Ptr;
 
-	Index<uint64_t> *index1 = new ArrayIndex<uint64_t>();
-	uint64_t values1[] = {100, 42, 80, 4, 10};
-	for (auto i = 0; i < sizeof(values1)/sizeof(*values1);i++) index1->put(values1[i]);
+	column2Ptr = column1.put(1000);
+	column3Ptr = column2Ptr->put(110);
+	column3Ptr->put(10);
+	column3Ptr = column2Ptr->put(120);
+	column3Ptr->put(20);
+	column3Ptr = column2Ptr->put(130);
+	column3Ptr->put(30);
 
-	Index<uint64_t> *index2 = new ArrayIndex<uint64_t>();
-	uint64_t values2[] = {8, 5, 35};
-	for (auto i = 0; i < sizeof(values2)/sizeof(*values2);i++) index2->put(values2[i]);
+	column2Ptr = column1.put(2000);
+	column3Ptr = column2Ptr->put(210);
+	column3Ptr->put(40);
+	column3Ptr = column2Ptr->put(220);
+	column3Ptr->put(50);
 
-	ArrayIndex<KV<uint64_t>> top;
-	top.put(KV<uint64_t>::foo(1000, index1));
-	top.put(KV<uint64_t>::foo(2000, index2));
-	top.debugPrint();
-	cout << top.contains(KV<uint64_t>::foo(1000, nullptr)) << endl;
-	cout << top.contains(KV<uint64_t>::foo(1010, nullptr)) << endl;
+	cout << "DONE" << endl;
+	cout << column1 << endl;
 }

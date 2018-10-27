@@ -18,14 +18,12 @@ private:
 	Bucket **buckets;
 	// Buckets Size
 	uint32_t capacity;
-	// Number of entries
-	uint64_t size_;
 	// Denotes how many bits are used for hashing
 	uint8_t globalDepth;
 
 	HashFunction<T> hf;
 
-	uint64_t getBucketNum(T v) {
+	uint64_t getBucketNum(const T &v) {
 		// (hash >> (64 - globalDepth): Check globalDepth most significant bits
 		// (1 << globalDepth) - 1: Create a bit string with 1 at the first globalDepth bits
 		return (hf.hash(v) >> (64 - globalDepth)) & ((1 << globalDepth) - 1);
@@ -33,19 +31,20 @@ private:
 
 public:
 	// A global depth of 1 means that 1 bit is used and so we have two initial buckets (0,1).
-	HashIndex() : capacity(2), size_(0), globalDepth(1) {
+	HashIndex() : capacity(2), globalDepth(1) {
 		buckets = new Bucket *[capacity];
 		buckets[0] = new Bucket();
 		buckets[1] = new Bucket();
 	}
 
-	void put(T v) {
+	T *put(const T &v) {
 		while (true) {
 			auto bucketNum = getBucketNum(v);
 			auto bucket = buckets[bucketNum];
 
 			// Value already in the hash table
-			if (bucket->contains(v)) return;
+			auto t = bucket->get(v);
+			if (t != nullptr) return t;
 
 			// Double the number of buckets
 			if (bucket->isFull() and bucket->localDepth == globalDepth) {
@@ -82,22 +81,22 @@ public:
 				}
 				delete bucket;
 			} else {
-				bucket->put(v);
-				size_++;
-				return;
+				t = bucket->put(v);
+				this->size_++;
+				return t;
 			}
 		}
 	}
 
-	bool contains(T v) { return buckets[getBucketNum(v)]->contains(v); }
+	T *get(const T &v) { return buckets[getBucketNum(v)]->get(v); }
 
-	uint64_t size() { return size_; }
+	bool contains(const T &v) { return buckets[getBucketNum(v)]->contains(v); }
 
 	void debugPrint() {
+		std::cout << "Total: " << (int) this->size_ << std::endl;
 		for (auto i = 0; i < capacity; ++i) {
 			std::cout << "bucket " << i << " (" << buckets[i] << ")" << std::endl;
 			buckets[i]->debugPrint();
 		}
-		std::cout << "Total: " << (int) size_ << std::endl;
 	}
 };
