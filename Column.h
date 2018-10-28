@@ -27,9 +27,24 @@ public:
 	}
 
 	Column<T> *put(const T &v) {
+		// Value is already in the index
 		auto columnPtr = values->get(Column<T>(v));
 		if (columnPtr != nullptr) return columnPtr;
-		return values->put(mkColumn(v));
+
+		Column<T> *ret;
+		try {
+			ret = values->put(mkColumn(v));
+		} catch (int e) {
+			std::cout << "---- new index ---- " << std::endl;
+			auto old = values;
+			values = new HashIndex<Column<T>>();
+			auto it = old->iterator();
+			for (; it->hasNext(); it->move()) values->put(it->data());
+			delete it;
+			delete old;
+			ret = values->put(mkColumn(v));
+		}
+		return ret;
 	}
 
 	Column<T> *get(const T &v) { return values->get(Column<T>(v)); }
