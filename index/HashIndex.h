@@ -4,7 +4,6 @@
 #include <cstring>
 #include "Index.h"
 #include "ArrayIndex.h"
-#include "HashFunction.h"
 
 template<typename T>
 class HashIndex : public Index<T> {
@@ -31,21 +30,21 @@ private:
 		HashIndex<T> *index;
 		uint32_t currentBucket;
 		IndexIterator<T> *bucketIterator;
-		IndexIterator<T> *bucketEndIterator;
 
 		HashIndexIterator(HashIndex<T> *index, const uint32_t currentBucket) : index(index),
 		                                                                       currentBucket(currentBucket) {
 			if (currentBucket >= index->capacity) return;
-			bucketIterator = index->buckets[currentBucket]->begin();
-			bucketEndIterator = index->buckets[currentBucket]->end();
+			bucketIterator = index->buckets[currentBucket]->iterator();
 		}
 
-		IndexIterator<T> *operator++() {
-			// Current bucket has more elements
-			if (bucketIterator->operator!=(bucketEndIterator)) bucketIterator->operator++();
+		bool hasNext() const { return currentBucket < index->capacity; }
 
-			// Move to next "different" bucket
-			if (bucketIterator->operator==(bucketEndIterator)) {
+		void move() {
+			// Current bucket has more elements
+			if (bucketIterator->hasNext()) bucketIterator->move();
+
+			// Move to next "different" bucket if the end of the current bucket is reached
+			if (!bucketIterator->hasNext()) {
 				// Skip bucket pointers that point to the same actual bucket
 				Bucket* previousBucket;
 				do {
@@ -55,23 +54,12 @@ private:
 				// There are still more buckets to iterate over
 				if (currentBucket < index->capacity) {
 					delete bucketIterator;
-					bucketIterator = index->buckets[currentBucket]->begin();
-					delete bucketEndIterator;
-					bucketEndIterator = index->buckets[currentBucket]->end();
+					bucketIterator = index->buckets[currentBucket]->iterator();
 				}
 			}
-			return this;
 		}
 
-		bool operator!=(const IndexIterator<T> *other) const {
-			return bucketIterator != ((HashIndexIterator *) other)->bucketIterator;
-		}
-
-		bool operator==(const IndexIterator<T> *other) const {
-			return bucketIterator == ((HashIndexIterator *) other)->bucketIterator;
-		}
-
-		const T &operator*() const { return bucketIterator->operator*(); };
+		const T &data() const { return bucketIterator->data(); }
 	};
 
 public:
@@ -133,17 +121,11 @@ public:
 		}
 	}
 
-	T *get(const T &v) {
-		auto i = getBucketNum(v);
-		auto b = buckets[i];
-		return b->get(v);
-	}
+	T *get(const T &v) { return buckets[getBucketNum(v)]->get(v); }
 
 	bool contains(const T &v) { return buckets[getBucketNum(v)]->contains(v); }
 
-	IndexIterator<T> *begin() { return new HashIndexIterator(this, 0); }
-
-	IndexIterator<T> *end() { return new HashIndexIterator(this, this->capacity); }
+	IndexIterator<T> *iterator() { return new HashIndexIterator(this, 0); }
 
 
 	void debugPrint() {

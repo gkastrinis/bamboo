@@ -38,9 +38,7 @@ public:
 
 	bool operator==(const Column<T> &rhs) const { return key == rhs.key; }
 
-	IndexIterator<Column<T>> *begin() { return values->begin(); }
-
-	IndexIterator<Column<T>> *end() { return values->end(); }
+	IndexIterator<Column<T>> *iterator() { return values->iterator(); }
 
 	friend std::ostream &operator<<(std::ostream &os, const Column<T> &col) {
 		os << "Column with key: " << col.key << "\n";

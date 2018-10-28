@@ -36,16 +36,11 @@ private:
 
 		ArrayIndexIterator(ArrayIndex<T> *index, const uint8_t pos) : index(index), pos(pos) {}
 
-		IndexIterator<T> *operator++() {
-			++pos;
-			return this;
-		}
+		bool hasNext() const { return pos < index->size_; }
 
-		bool operator!=(const IndexIterator<T> *other) const { return pos != ((ArrayIndexIterator *) other)->pos; }
+		void move() { pos++; }
 
-		bool operator==(const IndexIterator<T> *other) const { return pos == ((ArrayIndexIterator *) other)->pos; }
-
-		const T &operator*() const { return index->buffer[pos]; };
+		const T &data() const { return index->buffer[pos]; }
 	};
 
 public:
@@ -84,9 +79,7 @@ public:
 
 	bool isFull() { return this->size_ >= MAX_CAPACITY; }
 
-	IndexIterator<T> *begin() { return new ArrayIndexIterator(this, 0); }
-
-	IndexIterator<T> *end() { return new ArrayIndexIterator(this, this->size_); }
+	IndexIterator<T> *iterator() { return new ArrayIndexIterator(this, 0); }
 
 
 	void debugPrint() {
