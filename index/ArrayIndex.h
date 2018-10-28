@@ -16,7 +16,7 @@ private:
 
 	// Binary Search
 	// Return a pointer to the element (if found)
-	// and a position where it should have been (due to sorting)
+	// and the position where it should have been (due to sorting)
 	std::pair<T *, uint8_t> find(const T &v) {
 		if (this->size_ == 0) return {nullptr, 0};
 
@@ -29,6 +29,22 @@ private:
 		}
 		return {nullptr, (uint8_t) (buffer[middle] < v ? middle + 1 : middle)};
 	}
+
+	struct ArrayIndexIterator : public IndexIterator<T> {
+		ArrayIndex<T> *index;
+		uint8_t pos;
+
+		ArrayIndexIterator(ArrayIndex<T> *index, const uint8_t pos) : index(index), pos(pos) {}
+
+		IndexIterator<T> *operator++() {
+			++pos;
+			return this;
+		}
+
+		bool operator!=(const IndexIterator<T> *other) const { return pos != ((ArrayIndexIterator *) other)->pos; }
+
+		const T &operator*() const { return index->buffer[pos]; };
+	};
 
 public:
 	ArrayIndex() : capacity(1) { buffer = new T[capacity]; }
@@ -65,6 +81,11 @@ public:
 	bool contains(const T &v) { return find(v).first != nullptr; }
 
 	bool isFull() { return this->size_ >= MAX_CAPACITY; }
+
+	IndexIterator<T> *begin() { return new ArrayIndexIterator(this, 0); }
+
+	IndexIterator<T> *end() { return new ArrayIndexIterator(this, this->size_); }
+
 
 	void debugPrint() {
 		std::cout << "Total: " << (int) this->size_ << std::endl;

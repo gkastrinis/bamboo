@@ -22,6 +22,8 @@ int main(int argc, char **argv) {
 	column3Ptr = column2Ptr->put(220);
 	column3Ptr->put(50);
 
-	cout << "DONE" << endl;
-	cout << column1 << endl;
+	for (auto it = column1.begin(), end = column1.end() ; it->operator!=(end) ; ++(*it))
+		cout << (**it) << endl;
+
+	column1.rmColumn();
 }

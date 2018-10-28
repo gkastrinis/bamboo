@@ -11,8 +11,6 @@ struct Column {
 
 	explicit Column() : values(nullptr) {}
 
-	// TODO care about constructor/destructor
-
 	static Column<T> dummyColumn(const T &key) {
 		Column t;
 		t.key = key;
@@ -25,6 +23,8 @@ struct Column {
 		return t;
 	}
 
+	void rmColumn() { delete values; }
+
 	Column<T> *put(const T &v) {
 		auto columnPtr = values->get(dummyColumn(v));
 		if (columnPtr != nullptr) return columnPtr;
@@ -36,6 +36,10 @@ struct Column {
 	bool operator<(const Column<T> &rhs) const { return key < rhs.key; }
 
 	bool operator==(const Column<T> &rhs) const { return key == rhs.key; }
+
+	IndexIterator<Column<T>> *begin() { return values->begin(); }
+
+	IndexIterator<Column<T>> *end() { return values->end(); }
 };
 
 template<typename T>

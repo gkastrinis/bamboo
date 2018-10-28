@@ -3,6 +3,15 @@
 #include <cstdint>
 #include <iostream>
 
+template<typename T>
+struct IndexIterator {
+	virtual IndexIterator *operator++() = 0;
+
+	virtual bool operator!=(const IndexIterator *other) const = 0;
+
+	virtual const T &operator*() const = 0;
+};
+
 // NOTE: Only meant for primitive and pointer types
 template<typename T>
 struct Index {
@@ -24,4 +33,8 @@ public:
 	uint64_t size() { return size_; }
 
 	virtual void debugPrint() = 0;
+
+	virtual IndexIterator<T> *begin() = 0;
+
+	virtual IndexIterator<T> *end() = 0;
 };
