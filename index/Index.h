@@ -5,9 +5,13 @@
 
 template<typename T>
 struct IndexIterator {
+	virtual ~IndexIterator() = default;
+
 	virtual IndexIterator *operator++() = 0;
 
 	virtual bool operator!=(const IndexIterator *other) const = 0;
+
+	virtual bool operator==(const IndexIterator *other) const = 0;
 
 	virtual const T &operator*() const = 0;
 };

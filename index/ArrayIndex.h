@@ -43,6 +43,8 @@ private:
 
 		bool operator!=(const IndexIterator<T> *other) const { return pos != ((ArrayIndexIterator *) other)->pos; }
 
+		bool operator==(const IndexIterator<T> *other) const { return pos == ((ArrayIndexIterator *) other)->pos; }
+
 		const T &operator*() const { return index->buffer[pos]; };
 	};
 

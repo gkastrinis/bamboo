@@ -21,13 +21,58 @@ private:
 	// Denotes how many bits are used for hashing
 	uint8_t globalDepth;
 
-	HashFunction<T> hf;
-
 	uint64_t getBucketNum(const T &v) {
 		// (hash >> (64 - globalDepth): Check globalDepth most significant bits
 		// (1 << globalDepth) - 1: Create a bit string with 1 at the first globalDepth bits
-		return (hf.hash(v) >> (64 - globalDepth)) & ((1 << globalDepth) - 1);
+		return (v.hashCode() >> (64 - globalDepth)) & ((1 << globalDepth) - 1);
 	}
+
+	struct HashIndexIterator : public IndexIterator<T> {
+		HashIndex<T> *index;
+		uint32_t currentBucket;
+		IndexIterator<T> *bucketIterator;
+		IndexIterator<T> *bucketEndIterator;
+
+		HashIndexIterator(HashIndex<T> *index, const uint32_t currentBucket) : index(index),
+		                                                                       currentBucket(currentBucket) {
+			if (currentBucket >= index->capacity) return;
+			bucketIterator = index->buckets[currentBucket]->begin();
+			bucketEndIterator = index->buckets[currentBucket]->end();
+		}
+
+		IndexIterator<T> *operator++() {
+			// Current bucket has more elements
+			if (bucketIterator->operator!=(bucketEndIterator)) bucketIterator->operator++();
+
+			// Move to next "different" bucket
+			if (bucketIterator->operator==(bucketEndIterator)) {
+				// Skip bucket pointers that point to the same actual bucket
+				Bucket* previousBucket;
+				do {
+					previousBucket = index->buckets[currentBucket++];
+				} while (previousBucket == index->buckets[currentBucket]);
+
+				// There are still more buckets to iterate over
+				if (currentBucket < index->capacity) {
+					delete bucketIterator;
+					bucketIterator = index->buckets[currentBucket]->begin();
+					delete bucketEndIterator;
+					bucketEndIterator = index->buckets[currentBucket]->end();
+				}
+			}
+			return this;
+		}
+
+		bool operator!=(const IndexIterator<T> *other) const {
+			return bucketIterator != ((HashIndexIterator *) other)->bucketIterator;
+		}
+
+		bool operator==(const IndexIterator<T> *other) const {
+			return bucketIterator == ((HashIndexIterator *) other)->bucketIterator;
+		}
+
+		const T &operator*() const { return bucketIterator->operator*(); };
+	};
 
 public:
 	// A global depth of 1 means that 1 bit is used and so we have two initial buckets (0,1).
@@ -88,9 +133,18 @@ public:
 		}
 	}
 
-	T *get(const T &v) { return buckets[getBucketNum(v)]->get(v); }
+	T *get(const T &v) {
+		auto i = getBucketNum(v);
+		auto b = buckets[i];
+		return b->get(v);
+	}
 
 	bool contains(const T &v) { return buckets[getBucketNum(v)]->contains(v); }
+
+	IndexIterator<T> *begin() { return new HashIndexIterator(this, 0); }
+
+	IndexIterator<T> *end() { return new HashIndexIterator(this, this->capacity); }
+
 
 	void debugPrint() {
 		std::cout << "Total: " << (int) this->size_ << std::endl;

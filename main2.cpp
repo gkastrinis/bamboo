@@ -1,5 +1,4 @@
 #include "index/Index.h"
-#include "index/ArrayIndex.h"
 #include "Column.h"
 
 using namespace std;
@@ -22,8 +21,10 @@ int main(int argc, char **argv) {
 	column3Ptr = column2Ptr->put(220);
 	column3Ptr->put(50);
 
-	for (auto it = column1.begin(), end = column1.end() ; it->operator!=(end) ; ++(*it))
-		cout << (**it) << endl;
+	auto *it = column1.begin(), *end = column1.end();
+	for (; it->operator!=(end); ++(*it)) cout << (**it) << endl;
+	delete it;
+	delete end;
 
 	column1.rmColumn();
 }
