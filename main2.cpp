@@ -22,9 +22,12 @@ int main(int argc, char **argv) {
 	column3Ptr->put(50);
 
 	auto it = column1.iterator();
-	for (; it->hasNext(); it->move())
+	for (; it->hasNext();
+	it->move())
 		cout << it->data() << endl;
 	delete it;
+
+	column1.flatPrint(3);
 
 	column1.rmColumn();
 }
