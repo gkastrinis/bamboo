@@ -1,33 +1,22 @@
 #include "index/Index.h"
-#include "Column.h"
+#include "relation/Relation.h"
 
 using namespace std;
 
 int main(int argc, char **argv) {
-	auto column1 = Column<uint64_t>::mkColumn(0); // value is not important
-	Column<uint64_t> *column2Ptr, *column3Ptr;
+	Relation<uint64_t> r(3);
+	uint64_t values[3];
 
-	column2Ptr = column1.put(1000);
-	column3Ptr = column2Ptr->put(110);
-	column3Ptr->put(10);
-	column3Ptr = column2Ptr->put(120);
-	column3Ptr->put(20);
-	column3Ptr = column2Ptr->put(130);
-	column3Ptr->put(30);
+	values[0] = 1000; values[1] = 110; values[2] = 10;
+	r.put(values);
+	values[1] = 120; values[2] = 20;
+	r.put(values);
+	values[1] = 130; values[2] = 30;
+	r.put(values);
+	values[0] = 2000; values[1] = 210; values[2] = 40;
+	r.put(values);
+	values[1] = 220; values[2] = 50;
+	r.put(values);
 
-	column2Ptr = column1.put(2000);
-	column3Ptr = column2Ptr->put(210);
-	column3Ptr->put(40);
-	column3Ptr = column2Ptr->put(220);
-	column3Ptr->put(50);
-
-	auto it = column1.iterator();
-	for (; it->hasNext();
-	it->move())
-		cout << it->data() << endl;
-	delete it;
-
-	column1.flatPrint(3);
-
-	column1.rmColumn();
+	r.print();
 }
