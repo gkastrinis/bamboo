@@ -32,7 +32,7 @@ public:
 
 	virtual bool contains(const T &v) = 0;
 
-	uint64_t size() { return size_; }
+	uint64_t size() const { return size_; }
 
 	virtual void debugPrint() = 0;
 

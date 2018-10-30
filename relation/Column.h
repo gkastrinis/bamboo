@@ -35,7 +35,7 @@ public:
 		try {
 			ret = values->put(mkColumn(v));
 		} catch (int e) {
-			std::cout << "---- new index ---- " << std::endl;
+			//std::cout << "---- new index ---- " << std::endl;
 			auto old = values;
 			values = new HashIndex<Column<T>>();
 			auto it = old->iterator();

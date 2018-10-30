@@ -4,6 +4,8 @@
 
 template<typename T>
 class Relation {
+	// Number of entries
+	uint64_t size_;
 	uint8_t arity;
 	Column<T> topColumn;
 
@@ -12,7 +14,9 @@ class Relation {
 		uint8_t arity;
 		uint8_t index;
 
-		explicit Printer(uint8_t arity) : buffer(new T[arity]), arity(arity), index(0) {}
+		int counter;
+
+		explicit Printer(uint8_t arity) : buffer(new T[arity]), arity(arity), index(0), counter(0) {}
 
 		~Printer() { delete[] buffer; }
 
@@ -21,9 +25,10 @@ class Relation {
 		void pop() { if (index > 0) index--; }
 
 		void print() {
-			for (auto i = 0; i < arity; i++)
-				std::cout << buffer[i] << " ";
-			std::cout << std::endl;
+			counter++;
+//			for (auto i = 0; i < arity; i++)
+//				std::cout << buffer[i] << " ";
+//			std::cout << std::endl;
 		}
 	};
 
@@ -43,11 +48,16 @@ class Relation {
 
 public:
 	// value is not important
-	explicit Relation(uint8_t arity) : arity(arity), topColumn(Column<T>::mkColumn(0)) {}
+	explicit Relation(uint8_t arity) : size_(0), arity(arity), topColumn(Column<T>::mkColumn(0)) {}
 
 	~Relation() { topColumn.rmColumn(); }
 
+	uint64_t size() const { return size_; }
+
 	void put(T* values) {
+		// TODO fix this is not correct if values are already present
+		size_++;
+
 		auto currentColumn = &topColumn;
 		for (auto i = 0 ; i < arity ; i++)
 			currentColumn = currentColumn->put(values[i]);
@@ -56,5 +66,6 @@ public:
 	void print() {
 		Printer printer(arity);
 		flatPrint0(topColumn, printer);
+		std::cout << printer.counter << std::endl;
 	}
 };
