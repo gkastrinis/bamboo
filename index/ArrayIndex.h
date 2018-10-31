@@ -49,9 +49,9 @@ public:
 
 	~ArrayIndex() { delete[] buffer; }
 
-	T *put(const T &v) {
+	std::pair<T *, bool> put(const T &v) {
 		auto searchResult = find(v);
-		if (searchResult.first != nullptr) return searchResult.first;
+		if (searchResult.first != nullptr) return {searchResult.first, false};
 		auto i = searchResult.second;
 
 		if (this->size_ >= capacity) {
@@ -71,7 +71,7 @@ public:
 			buffer[i] = v;
 			this->size_++;
 		}
-		return &buffer[i];
+		return {&buffer[i], true};
 	}
 
 	T *get(const T &v) { return find(v).first; }

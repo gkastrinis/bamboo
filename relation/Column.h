@@ -26,14 +26,15 @@ public:
 		return hash;
 	}
 
-	Column<T> *put(const T &v) {
+	// Pointer to the (maybe new) element, and whether it is a new element
+	std::pair<Column<T> *, bool> put(const T &v) {
 		// Value is already in the index
 		auto columnPtr = values->get(Column<T>(v));
-		if (columnPtr != nullptr) return columnPtr;
+		if (columnPtr != nullptr) return {columnPtr, false};
 
-		Column<T> *ret;
+		std::pair<Column<T> *, bool> result;
 		try {
-			ret = values->put(mkColumn(v));
+			result = values->put(mkColumn(v));
 		} catch (int e) {
 			//std::cout << "---- new index ---- " << std::endl;
 			auto old = values;
@@ -42,9 +43,9 @@ public:
 			for (; it->hasNext(); it->move()) values->put(it->data());
 			delete it;
 			delete old;
-			ret = values->put(mkColumn(v));
+			result = values->put(mkColumn(v));
 		}
-		return ret;
+		return result;
 	}
 
 	Column<T> *get(const T &v) { return values->get(Column<T>(v)); }

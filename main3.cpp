@@ -15,5 +15,6 @@ int main(int argc, char **argv) {
 		r.put(values);
 		//if (++counter == 125) break;
 	}
-	r.print();
+	//r.print();
+	cout << "Total: " << r.size() << endl;
 }

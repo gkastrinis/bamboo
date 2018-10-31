@@ -70,14 +70,14 @@ public:
 		buckets[1] = new Bucket();
 	}
 
-	T *put(const T &v) {
+	std::pair<T *, bool> put(const T &v) {
 		while (true) {
 			auto bucketNum = getBucketNum(v);
 			auto bucket = buckets[bucketNum];
 
 			// Value already in the hash table
 			auto t = bucket->get(v);
-			if (t != nullptr) return t;
+			if (t != nullptr) return {t, false};
 
 			// Double the number of buckets
 			if (bucket->isFull() and bucket->localDepth == globalDepth) {
@@ -114,9 +114,9 @@ public:
 				}
 				delete bucket;
 			} else {
-				t = bucket->put(v);
+				auto result = bucket->put(v);
 				this->size_++;
-				return t;
+				return result;
 			}
 		}
 	}

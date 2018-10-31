@@ -26,7 +26,8 @@ public:
 
 	virtual ~Index() = default;
 
-	virtual T *put(const T &v) = 0;
+	// Pointer to the (maybe new) element, and whether it is a new element
+	virtual std::pair<T *, bool> put(const T &v) = 0;
 
 	virtual T *get(const T &v) = 0;
 

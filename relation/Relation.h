@@ -4,9 +4,9 @@
 
 template<typename T>
 class Relation {
+	uint8_t arity;
 	// Number of entries
 	uint64_t size_;
-	uint8_t arity;
 	Column<T> topColumn;
 
 	struct Printer {
@@ -14,9 +14,7 @@ class Relation {
 		uint8_t arity;
 		uint8_t index;
 
-		int counter;
-
-		explicit Printer(uint8_t arity) : buffer(new T[arity]), arity(arity), index(0), counter(0) {}
+		explicit Printer(uint8_t arity) : buffer(new T[arity]), arity(arity), index(0) {}
 
 		~Printer() { delete[] buffer; }
 
@@ -25,10 +23,9 @@ class Relation {
 		void pop() { if (index > 0) index--; }
 
 		void print() {
-			counter++;
-//			for (auto i = 0; i < arity; i++)
-//				std::cout << buffer[i] << " ";
-//			std::cout << std::endl;
+			for (auto i = 0; i < arity; i++)
+				std::cout << buffer[i] << " ";
+			std::cout << std::endl;
 		}
 	};
 
@@ -48,20 +45,22 @@ class Relation {
 
 public:
 	// value is not important
-	explicit Relation(uint8_t arity) : size_(0), arity(arity), topColumn(Column<T>::mkColumn(0)) {}
+	explicit Relation(uint8_t arity) : arity(arity), size_(0), topColumn(Column<T>::mkColumn(0)) {}
 
 	~Relation() { topColumn.rmColumn(); }
 
-	uint64_t size() const { return size_; }
-
 	void put(T *values) {
-		// TODO fix this is not correct if values are already present
-		size_++;
-
+		auto anyNewInsertion = false;
 		auto currentColumn = &topColumn;
-		for (auto i = 0; i < arity; i++)
-			currentColumn = currentColumn->put(values[i]);
+		for (auto i = 0; i < arity; i++) {
+			auto result = currentColumn->put(values[i]);
+			currentColumn = result.first;
+			anyNewInsertion |= result.second;
+		}
+		if (anyNewInsertion) size_++;
 	}
+
+	uint64_t size() const { return size_; }
 
 	void print() {
 		Printer printer(arity);
