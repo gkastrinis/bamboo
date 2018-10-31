@@ -20,7 +20,8 @@ private:
 	std::pair<T *, uint8_t> find(const T &v) {
 		if (this->size_ == 0) return {nullptr, 0};
 
-		auto start = 0, end = this->size_ - 1, middle = end;
+		// "Bigger" type than uint8 (and not unsigned) to support negative index values
+		int32_t start = 0, end = ((uint8_t) this->size_) - 1, middle = end;
 		while (start <= end) {
 			middle = (start + end) / 2;
 			if (buffer[middle] == v) return {&buffer[middle], middle};

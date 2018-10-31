@@ -19,7 +19,7 @@ template<typename T>
 struct Index {
 protected:
 	// Number of entries
-	uint8_t size_;
+	uint64_t size_;
 
 public:
 	Index() : size_(0) {};

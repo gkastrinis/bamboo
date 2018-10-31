@@ -9,7 +9,7 @@ template<typename T>
 class HashIndex : public Index<T> {
 private:
 	struct Bucket : public ArrayIndex<T> {
-		explicit Bucket(uint8_t localDepth = 0) : localDepth(localDepth) {}
+		explicit Bucket(uint8_t localDepth = 1) : localDepth(localDepth) {}
 
 		uint8_t localDepth;
 	};

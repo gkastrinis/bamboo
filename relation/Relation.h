@@ -54,12 +54,12 @@ public:
 
 	uint64_t size() const { return size_; }
 
-	void put(T* values) {
+	void put(T *values) {
 		// TODO fix this is not correct if values are already present
 		size_++;
 
 		auto currentColumn = &topColumn;
-		for (auto i = 0 ; i < arity ; i++)
+		for (auto i = 0; i < arity; i++)
 			currentColumn = currentColumn->put(values[i]);
 	}
 
