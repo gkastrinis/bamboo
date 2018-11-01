@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstring>
 #include "Index.h"
+#include "IndexIterator.h"
 #include "ArrayIndex.h"
 
 template<typename T>
@@ -26,40 +27,37 @@ private:
 		return (v.hashCode() >> (64 - globalDepth)) & ((1 << globalDepth) - 1);
 	}
 
-	struct HashIndexIterator : public IndexIterator<T> {
+	struct RawHashIndexIterator : public RawIndexIterator<T> {
 		HashIndex<T> *index;
 		uint32_t currentBucket;
-		IndexIterator<T> *bucketIterator;
+		IndexIterator<T> bucketIterator;
 
-		HashIndexIterator(HashIndex<T> *index, const uint32_t currentBucket) : index(index),
-		                                                                       currentBucket(currentBucket) {
-			if (currentBucket >= index->capacity) return;
-			bucketIterator = index->buckets[currentBucket]->iterator();
+		explicit RawHashIndexIterator(HashIndex<T> *index) : index(index), currentBucket(0) {
+			if (currentBucket < index->capacity)
+				bucketIterator = index->buckets[currentBucket]->iterator();
 		}
 
 		bool hasNext() const { return currentBucket < index->capacity; }
 
 		void move() {
 			// Current bucket has more elements
-			if (bucketIterator->hasNext()) bucketIterator->move();
+			if (bucketIterator.hasNext()) bucketIterator.move();
 
 			// Move to next "different" bucket if the end of the current bucket is reached
-			if (!bucketIterator->hasNext()) {
+			if (!bucketIterator.hasNext()) {
 				// Skip bucket pointers that point to the same actual bucket
-				Bucket* previousBucket;
+				Bucket *previousBucket;
 				do {
 					previousBucket = index->buckets[currentBucket++];
 				} while (previousBucket == index->buckets[currentBucket]);
 
 				// There are still more buckets to iterate over
-				if (currentBucket < index->capacity) {
-					delete bucketIterator;
+				if (currentBucket < index->capacity)
 					bucketIterator = index->buckets[currentBucket]->iterator();
-				}
 			}
 		}
 
-		const T &data() const { return bucketIterator->data(); }
+		const T &data() const { return bucketIterator.data(); }
 	};
 
 public:
@@ -125,5 +123,5 @@ public:
 
 	bool contains(const T &v) { return buckets[getBucketNum(v)]->contains(v); }
 
-	IndexIterator<T> *iterator() { return new HashIndexIterator(this, 0); }
+	IndexIterator<T> iterator() { return IndexIterator<T>(new RawHashIndexIterator(this)); }
 };

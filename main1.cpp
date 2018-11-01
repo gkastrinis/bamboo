@@ -17,8 +17,6 @@ int main(int argc, char **argv) {
 
 	for (auto v : values) column.put(v);
 
-	auto it = column.iterator();
-	for (; it->hasNext(); it->move())
-		cout << it->data() << endl;
-	delete it;
+	for (auto it = column.iterator(); it.hasNext(); it.move())
+		cout << it.data() << endl;
 }

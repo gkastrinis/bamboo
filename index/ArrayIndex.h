@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstring>
 #include "Index.h"
+#include "IndexIterator.h"
 
 template<typename T>
 class ArrayIndex : public Index<T> {
@@ -31,11 +32,11 @@ private:
 		return {nullptr, (uint8_t) (buffer[middle] < v ? middle + 1 : middle)};
 	}
 
-	struct ArrayIndexIterator : public IndexIterator<T> {
+	struct RawArrayIndexIterator : public RawIndexIterator<T> {
 		ArrayIndex<T> *index;
 		uint8_t pos;
 
-		ArrayIndexIterator(ArrayIndex<T> *index, const uint8_t pos) : index(index), pos(pos) {}
+		explicit RawArrayIndexIterator(ArrayIndex<T> *index) : index(index), pos(0) {}
 
 		bool hasNext() const { return pos < index->size_; }
 
@@ -80,7 +81,7 @@ public:
 
 	bool isFull() { return this->size_ >= MAX_CAPACITY; }
 
-	IndexIterator<T> *iterator() { return new ArrayIndexIterator(this, 0); }
+	IndexIterator<T> iterator() { return IndexIterator<T>(new RawArrayIndexIterator(this)); }
 
 	const T *rawData() { return buffer; }
 };

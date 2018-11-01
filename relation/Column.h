@@ -39,22 +39,19 @@ public:
 			//std::cout << "---- new index ---- " << std::endl;
 			auto old = values;
 			values = new HashIndex<Column<T>>();
-			auto it = old->iterator();
-			for (; it->hasNext(); it->move()) values->put(it->data());
-			delete it;
+			for (auto it = old->iterator(); it.hasNext(); it.move())
+				values->put(it.data());
 			delete old;
 			result = values->put(mkColumn(v));
 		}
 		return result;
 	}
 
-	Column<T> *get(const T &v) { return values->get(Column<T>(v)); }
-
 	bool operator<(const Column<T> &rhs) const { return key < rhs.key; }
 
 	bool operator==(const Column<T> &rhs) const { return key == rhs.key; }
 
-	IndexIterator<Column<T>> *iterator() const { return values->iterator(); }
+	IndexIterator<Column<T>> iterator() const { return values->iterator(); }
 
 	friend std::ostream &operator<<(std::ostream &os, const Column<T> &col) {
 		os << "Column with key: " << col.key << "\n";
