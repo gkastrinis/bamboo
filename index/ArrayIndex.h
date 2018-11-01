@@ -82,13 +82,5 @@ public:
 
 	IndexIterator<T> *iterator() { return new ArrayIndexIterator(this, 0); }
 
-
-	void debugPrint() {
-		std::cout << "Total: " << (int) this->size_ << std::endl;
-		for (auto i = 0; i < this->size_; i++)
-			std::cout << buffer[i] << " ";
-		std::cout << std::endl;
-	}
-
 	const T *rawData() { return buffer; }
 };

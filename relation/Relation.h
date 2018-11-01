@@ -67,4 +67,20 @@ public:
 		flatPrint0(topColumn, printer);
 		std::cout << printer.counter << std::endl;
 	}
+
+	void VPTtest() {
+		Relation<T> result(2);
+
+		uint64_t counter = 0;
+		auto topIt = topColumn.iterator();
+		for (; topIt->hasNext(); topIt->move()) {
+			//std::cout << topIt->data() << std::endl;
+			counter++;
+			auto it1 = topIt->data().iterator();
+			for(; it1->hasNext(); it1->move()) {
+				auto it2 = it1->clone();
+			}
+		}
+		std::cout << "--> " << counter << std::endl;
+	}
 };

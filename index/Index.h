@@ -35,7 +35,5 @@ public:
 
 	uint64_t size() const { return size_; }
 
-	virtual void debugPrint() = 0;
-
 	virtual IndexIterator<T> *iterator() = 0;
 };

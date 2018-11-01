@@ -126,13 +126,4 @@ public:
 	bool contains(const T &v) { return buckets[getBucketNum(v)]->contains(v); }
 
 	IndexIterator<T> *iterator() { return new HashIndexIterator(this, 0); }
-
-
-	void debugPrint() {
-		std::cout << "Total: " << (int) this->size_ << std::endl;
-		for (auto i = 0; i < capacity; ++i) {
-			std::cout << "bucket " << i << " (" << buckets[i] << ")" << std::endl;
-			buckets[i]->debugPrint();
-		}
-	}
 };
