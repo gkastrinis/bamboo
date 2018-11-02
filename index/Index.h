@@ -25,5 +25,7 @@ public:
 
 	uint64_t size() const { return size_; }
 
-	virtual IndexIterator<T> iterator() = 0;
+	virtual IndexIterator<T> begin() const = 0;
+
+	virtual IndexIterator<T> end() const = 0;
 };

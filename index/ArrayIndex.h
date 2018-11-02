@@ -33,12 +33,12 @@ private:
 	}
 
 	struct RawArrayIndexIterator : public RawIndexIterator<T> {
-		ArrayIndex<T> *index;
+		const ArrayIndex<T> *index;
 		uint8_t pos;
 
-		explicit RawArrayIndexIterator(ArrayIndex<T> *index) : index(index), pos(0) {}
+		explicit RawArrayIndexIterator(const ArrayIndex<T> *index, uint8_t pos = 0) : index(index), pos(pos) {}
 
-		bool hasNext() const { return pos < index->size_; }
+		bool equals(const RawIndexIterator<T> &other) const { return pos == ((RawArrayIndexIterator *) &other)->pos; }
 
 		void move() { pos++; }
 
@@ -81,7 +81,13 @@ public:
 
 	bool isFull() { return this->size_ >= MAX_CAPACITY; }
 
-	IndexIterator<T> iterator() { return IndexIterator<T>(new RawArrayIndexIterator(this)); }
+	IndexIterator<T> begin() const {
+		return IndexIterator<T>((RawIndexIterator<T> *) new RawArrayIndexIterator(this));
+	}
+
+	IndexIterator<T> end() const {
+		return IndexIterator<T>((RawIndexIterator<T> *) new RawArrayIndexIterator(this, (uint8_t) this->size_));
+	}
 
 	const T *rawData() { return buffer; }
 };

@@ -14,9 +14,6 @@ int main(int argc, char **argv) {
 	//int S = 100000;
 	//uint64_t values[S];
 	//for (auto i = 0; i < S; i++) values[i] = rand() % S;
-
 	for (auto v : values) column.put(v);
-
-	for (auto it = column.iterator(); it.hasNext(); it.move())
-		cout << it.data() << endl;
+	for (auto v : column) cout << v << endl;
 }

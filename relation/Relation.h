@@ -34,13 +34,11 @@ class Relation {
 			printer.print();
 			return;
 		}
-		auto it = column.iterator();
-		for (; it->hasNext(); it->move()) {
-			printer.push(it->data().key);
-			flatPrint0(it->data(), printer);
+		for (auto childColumn : column) {
+			printer.push(childColumn.key);
+			flatPrint0(childColumn, printer);
 			printer.pop();
 		}
-		delete it;
 	}
 
 public:
@@ -65,7 +63,6 @@ public:
 	void print() {
 		Printer printer(arity);
 		flatPrint0(topColumn, printer);
-		std::cout << printer.counter << std::endl;
 	}
 
 	void VPTtest() {
@@ -76,10 +73,10 @@ public:
 		for (; topIt->hasNext(); topIt->move()) {
 			//std::cout << topIt->data() << std::endl;
 			counter++;
-			auto it1 = topIt->data().iterator();
-			for(; it1->hasNext(); it1->move()) {
-				auto it2 = it1->clone();
-			}
+//			auto it1 = topIt->data().iterator();
+//			for(; it1->hasNext(); it1->move()) {
+//				auto it2 = it1->clone();
+//			}
 		}
 		std::cout << "--> " << counter << std::endl;
 	}

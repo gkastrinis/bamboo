@@ -6,7 +6,7 @@ template<typename T>
 struct RawIndexIterator {
 	virtual ~RawIndexIterator() = default;
 
-	virtual bool hasNext() const = 0;
+	virtual bool equals(const RawIndexIterator<T> &other) const = 0;
 
 	virtual void move() = 0;
 
@@ -22,9 +22,11 @@ struct IndexIterator final {
 
 	~IndexIterator() { if (delegate) delete delegate; }
 
-	bool hasNext() const { return delegate->hasNext(); }
+	bool operator==(const IndexIterator &other) const { return delegate->equals(*(other.delegate)); }
 
-	void move() { delegate->move(); }
+	bool operator!=(const IndexIterator &other) const { return !(delegate->equals(*(other.delegate))); }
 
-	const T &data() const { return delegate->data(); }
+	void operator++() { delegate->move(); }
+
+	const T &operator*() const { return delegate->data(); }
 };

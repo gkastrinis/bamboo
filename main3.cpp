@@ -18,5 +18,5 @@ int main(int argc, char **argv) {
 	//r.print();
 	cout << "Total: " << r.size() << endl;
 
-	r.VPTtest();
+	//r.VPTtest();
 }
