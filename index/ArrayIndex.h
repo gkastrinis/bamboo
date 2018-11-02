@@ -38,6 +38,8 @@ private:
 
 		explicit RawArrayIndexIterator(const ArrayIndex<T> *index, uint8_t pos = 0) : index(index), pos(pos) {}
 
+		RawIndexIterator<T> *cloneNext() const { return new RawArrayIndexIterator(index, (uint8_t) (pos + 1)); }
+
 		bool equals(const RawIndexIterator<T> &other) const { return pos == ((RawArrayIndexIterator *) &other)->pos; }
 
 		void move() { pos++; }
@@ -81,13 +83,9 @@ public:
 
 	bool isFull() { return this->size_ >= MAX_CAPACITY; }
 
-	IndexIterator<T> begin() const {
-		return IndexIterator<T>((RawIndexIterator<T> *) new RawArrayIndexIterator(this));
-	}
+	IndexIterator<T> begin() const { return IndexIterator<T>(new RawArrayIndexIterator(this)); }
 
-	IndexIterator<T> end() const {
-		return IndexIterator<T>((RawIndexIterator<T> *) new RawArrayIndexIterator(this, (uint8_t) this->size_));
-	}
+	IndexIterator<T> end() const { return IndexIterator<T>(new RawArrayIndexIterator(this, (uint8_t) this->size_)); }
 
 	const T *rawData() { return buffer; }
 };

@@ -44,6 +44,12 @@ private:
 		explicit RawHashIndexIterator(const HashIndex<T> *index, uint32_t currentBucket = 0)
 				: index(index), currentBucket(currentBucket) { updateIterators(); }
 
+		RawIndexIterator<T> *cloneNext() const {
+			auto clone = new RawHashIndexIterator(index, currentBucket);
+			clone->move();
+			return clone;
+		}
+
 		bool equals(const RawIndexIterator<T> &other) const {
 			auto otherCasted = (RawHashIndexIterator *) &other;
 			return currentBucket == otherCasted->currentBucket && bucketIterator == otherCasted->bucketIterator;
@@ -131,11 +137,7 @@ public:
 
 	bool contains(const T &v) { return buckets[getBucketNum(v)]->contains(v); }
 
-	IndexIterator<T> begin() const {
-		return IndexIterator<T>((RawIndexIterator<T> *) new RawHashIndexIterator(this));
-	}
+	IndexIterator<T> begin() const { return IndexIterator<T>(new RawHashIndexIterator(this)); }
 
-	IndexIterator<T> end() const {
-		return IndexIterator<T>((RawIndexIterator<T> *) new RawHashIndexIterator(this, (uint8_t) this->size_));
-	}
+	IndexIterator<T> end() const { return IndexIterator<T>(new RawHashIndexIterator(this, (uint8_t) this->size_)); }
 };
