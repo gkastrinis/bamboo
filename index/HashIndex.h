@@ -8,7 +8,6 @@
 
 template<typename T>
 class HashIndex : public Index<T> {
-private:
 	struct Bucket : public ArrayIndex<T> {
 		explicit Bucket(uint8_t localDepth = 1) : localDepth(localDepth) {}
 
@@ -29,43 +28,39 @@ private:
 
 	struct RawHashIndexIterator : public RawIndexIterator<T> {
 		const HashIndex<T> *index;
-		uint32_t currentBucket;
+		uint32_t bucketNumber;
 		IndexIterator<T> bucketIterator;
-		IndexIterator<T> bucketEndIterator;
 
 		void updateIterators() {
-			if (currentBucket < index->capacity) {
-				auto bucket = index->buckets[currentBucket];
-				bucketIterator = bucket->begin();
-				bucketEndIterator = index->end();
+			if (bucketNumber < index->capacity) {
+				auto bucket = index->buckets[bucketNumber];
+				bucketIterator = bucket->iterator();
 			}
 		}
 
 		explicit RawHashIndexIterator(const HashIndex<T> *index, uint32_t currentBucket = 0)
-				: index(index), currentBucket(currentBucket) { updateIterators(); }
+				: index(index), bucketNumber(currentBucket) { updateIterators(); }
 
 		RawIndexIterator<T> *cloneNext() const {
-			auto clone = new RawHashIndexIterator(index, currentBucket);
+			auto clone = new RawHashIndexIterator(index, bucketNumber);
 			clone->move();
 			return clone;
 		}
 
-		bool equals(const RawIndexIterator<T> &other) const {
-			auto otherCasted = (RawHashIndexIterator *) &other;
-			return currentBucket == otherCasted->currentBucket && bucketIterator == otherCasted->bucketIterator;
-		}
+		bool hasNext() const { return bucketNumber < index->capacity; }
 
 		void move() {
 			// Current bucket has more elements
-			if (bucketIterator != bucketEndIterator) ++bucketIterator;
+			if (bucketIterator.hasNext()) ++bucketIterator;
 
 			// Move to next "different" bucket if the end of the current bucket is reached
-			if (bucketIterator == bucketEndIterator) {
+			if (!bucketIterator.hasNext()) {
 				// Skip bucket pointers that point to the same actual bucket
 				Bucket *previousBucket;
 				do {
-					previousBucket = index->buckets[currentBucket++];
-				} while (previousBucket == index->buckets[currentBucket]);
+					if (bucketNumber == index->capacity) break;
+					previousBucket = index->buckets[bucketNumber++];
+				} while (previousBucket == index->buckets[bucketNumber]);
 				// There are still more buckets to iterate over
 				updateIterators();
 			}
@@ -137,7 +132,5 @@ public:
 
 	bool contains(const T &v) { return buckets[getBucketNum(v)]->contains(v); }
 
-	IndexIterator<T> begin() const { return IndexIterator<T>(new RawHashIndexIterator(this)); }
-
-	IndexIterator<T> end() const { return IndexIterator<T>(new RawHashIndexIterator(this, (uint8_t) this->size_)); }
+	IndexIterator<T> iterator() const { return IndexIterator<T>(std::make_shared<RawHashIndexIterator>(this)); }
 };

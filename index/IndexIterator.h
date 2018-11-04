@@ -1,14 +1,15 @@
 #pragma once
 
 #include <iostream>
+#include <memory>
 
 template<typename T>
 struct RawIndexIterator {
 	virtual ~RawIndexIterator() = default;
 
-	virtual RawIndexIterator* cloneNext() const = 0;
+	virtual RawIndexIterator *cloneNext() const = 0;
 
-	virtual bool equals(const RawIndexIterator<T> &other) const = 0;
+	virtual bool hasNext() const = 0;
 
 	virtual void move() = 0;
 
@@ -18,19 +19,15 @@ struct RawIndexIterator {
 template<typename T>
 struct IndexIterator final {
 	// Keep a pointer to enable virtual dispatch
-	RawIndexIterator<T> *delegate;
+	std::shared_ptr<RawIndexIterator<T>> delegate;
 
-	explicit IndexIterator(RawIndexIterator<T> *delegate = nullptr) : delegate(delegate) {}
-
-	~IndexIterator() { if (delegate) delete delegate; }
+	explicit IndexIterator(std::shared_ptr<RawIndexIterator<T>> delegate = nullptr) : delegate(delegate) {}
 
 	IndexIterator cloneNext() const { return IndexIterator(delegate->cloneNext()); }
 
-	bool operator==(const IndexIterator &other) const { return delegate->equals(*(other.delegate)); }
+	bool hasNext() const { return delegate ? delegate->hasNext() : false; }
 
-	bool operator!=(const IndexIterator &other) const { return !(delegate->equals(*(other.delegate))); }
-
-	void operator++() { delegate->move(); }
+	void operator++() { if (delegate) delegate->move(); }
 
 	const T &operator*() const { return delegate->data(); }
 };

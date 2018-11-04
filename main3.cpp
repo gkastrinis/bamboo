@@ -13,9 +13,9 @@ int main(int argc, char **argv) {
 		file >> values[0] >> values[1];
 		if (file.eof()) break;
 		r.put(values);
-		if (++counter == 4) break;
+		if (++counter == 49) break;
 	}
-//	r.print();
 	cout << "Total: " << r.size() << endl;
-	r.VPTtest();
+	r.print();
+//	r.VPTtest();
 }

@@ -14,7 +14,9 @@ class Relation {
 		uint8_t arity;
 		uint8_t index;
 
-		explicit Printer(uint8_t arity) : buffer(new T[arity]), arity(arity), index(0) {}
+		int counter;
+
+		explicit Printer(uint8_t arity) : buffer(new T[arity]), arity(arity), index(0), counter(0) {}
 
 		~Printer() { delete[] buffer; }
 
@@ -23,6 +25,8 @@ class Relation {
 		void pop() { if (index > 0) index--; }
 
 		void print() {
+			counter++;
+			std::cout << counter << " " ;
 			for (auto i = 0; i < arity; i++)
 				std::cout << buffer[i] << " ";
 			std::cout << std::endl;
@@ -34,9 +38,9 @@ class Relation {
 			printer.print();
 			return;
 		}
-		for (auto childColumn : column) {
-			printer.push(childColumn.key);
-			flatPrint0(childColumn, printer);
+		for (auto it = column.iterator(); it.hasNext(); ++it) {
+			printer.push((*it).key);
+			flatPrint0(*it, printer);
 			printer.pop();
 		}
 	}
