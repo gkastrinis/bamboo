@@ -36,10 +36,9 @@ public:
 		try {
 			result = values->put(mkColumn(v));
 		} catch (int e) {
-//			std::cout << "---- new index ---- " << std::endl;
 			auto old = values;
 			values = new HashIndex<Column<T>>();
-			for (auto it = old->iterator(); it.hasNext(); ++it) values->put(*it);
+			for (auto it = old->iterator(); it->hasData(); it->move()) values->put(it->data());
 			delete old;
 			result = values->put(mkColumn(v));
 		}
@@ -50,7 +49,7 @@ public:
 
 	bool operator==(const Column<T> &rhs) const { return key == rhs.key; }
 
-	IndexIterator<Column<T>> iterator() const { return values->iterator(); }
+	std::unique_ptr<IndexIterator<Column<T>>> iterator() const { return values->iterator(); }
 
 	friend std::ostream &operator<<(std::ostream &os, const Column<T> &col) {
 		os << "Column with key: " << col.key;

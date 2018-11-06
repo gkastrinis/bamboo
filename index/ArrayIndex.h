@@ -3,7 +3,6 @@
 #include <iostream>
 #include <cstring>
 #include "Index.h"
-#include "IndexIterator.h"
 
 template<typename T>
 class ArrayIndex : public Index<T> {
@@ -31,19 +30,25 @@ class ArrayIndex : public Index<T> {
 		return {nullptr, (uint8_t) (buffer[middle] < v ? middle + 1 : middle)};
 	}
 
-	struct RawArrayIndexIterator : public RawIndexIterator<T> {
+	struct ArrayIndexIterator : public IndexIterator<T> {
 		const ArrayIndex<T> *index;
 		uint8_t pos;
 
-		explicit RawArrayIndexIterator(const ArrayIndex<T> *index, uint8_t pos = 0) : index(index), pos(pos) {}
+		explicit ArrayIndexIterator(const ArrayIndex<T> *index, uint8_t pos = 0) : index(index), pos(pos) {}
 
-		RawIndexIterator<T> *cloneNext() const { return new RawArrayIndexIterator(index, (uint8_t) (pos + 1)); }
+		bool hasData() const { return pos < index->size_; }
 
-		bool hasNext() const { return pos < index->size_; }
+		const T &data() const { return index->buffer[pos]; }
 
 		void move() { pos++; }
 
-		const T &data() const { return index->buffer[pos]; }
+		std::unique_ptr<IndexIterator<T>> clone() const {
+			return std::make_unique<ArrayIndexIterator>(index, (uint8_t) pos);
+		}
+
+		std::unique_ptr<IndexIterator<T>> cloneAndMove() const {
+			return std::make_unique<ArrayIndexIterator>(index, (uint8_t) (pos + 1));
+		}
 	};
 
 public:
@@ -82,7 +87,5 @@ public:
 
 	bool isFull() { return this->size_ >= MAX_CAPACITY; }
 
-	IndexIterator<T> iterator() const { return IndexIterator<T>(std::make_shared<RawArrayIndexIterator>(this)); }
-
-	const T *rawData() { return buffer; }
+	std::unique_ptr<IndexIterator<T>> iterator() const { return std::make_unique<ArrayIndexIterator>(this); }
 };

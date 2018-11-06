@@ -38,9 +38,9 @@ class Relation {
 			printer.print();
 			return;
 		}
-		for (auto it = column.iterator(); it.hasNext(); ++it) {
-			printer.push((*it).key);
-			flatPrint0(*it, printer);
+		for (auto it = column.iterator(); it->hasData(); it->move()) {
+			printer.push(it->data().key);
+			flatPrint0(it->data(), printer);
 			printer.pop();
 		}
 	}
@@ -72,10 +72,13 @@ public:
 	void VPTtest() {
 		Relation<T> result(2);
 		uint64_t counter = 0;
-		for (auto child : topColumn)
-			for (auto it1 = child.begin(), end = child.end(); it1 != end; ++it1)
-				for (auto it2 = it1.cloneNext(); it2 != end; ++it2)
+		for (auto outerIt = topColumn.iterator(); outerIt->hasData(); outerIt->move())
+			for (auto it1 = outerIt->data().iterator(); it1->hasData(); it1->move())
+				for (auto it2 = it1->cloneAndMove(); it2->hasData(); it2->move()) {
 					counter++;
+					if (counter % 10000000 == 0) std::cout << counter << std::endl;
+//					std::cout << it1->data() << " " << it2->data() << std::endl;
+				}
 		std::cout << "--> " << counter << std::endl;
 	}
 };

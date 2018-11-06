@@ -1,5 +1,4 @@
 #include <fstream>
-#include "index/Index.h"
 #include "relation/Relation.h"
 
 using namespace std;
@@ -13,9 +12,9 @@ int main(int argc, char **argv) {
 		file >> values[0] >> values[1];
 		if (file.eof()) break;
 		r.put(values);
-		if (++counter == 49) break;
-	}
+		if (++counter == 100000) break;
+ 	}
 	cout << "Total: " << r.size() << endl;
-	r.print();
-//	r.VPTtest();
+//	r.print();
+	r.VPTtest();
 }

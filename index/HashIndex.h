@@ -3,7 +3,6 @@
 #include <iostream>
 #include <cstring>
 #include "Index.h"
-#include "IndexIterator.h"
 #include "ArrayIndex.h"
 
 template<typename T>
@@ -26,35 +25,27 @@ class HashIndex : public Index<T> {
 		return (v.hashCode() >> (64 - globalDepth)) & ((1 << globalDepth) - 1);
 	}
 
-	struct RawHashIndexIterator : public RawIndexIterator<T> {
+	struct HashIndexIterator : public IndexIterator<T> {
 		const HashIndex<T> *index;
 		uint32_t bucketNumber;
-		IndexIterator<T> bucketIterator;
+		std::unique_ptr<IndexIterator<T>> bucketIterator;
 
-		void updateIterators() {
-			if (bucketNumber < index->capacity) {
-				auto bucket = index->buckets[bucketNumber];
-				bucketIterator = bucket->iterator();
-			}
+		explicit HashIndexIterator(const HashIndex<T> *index, uint32_t bucketNumber = 0)
+				: index(index), bucketNumber(bucketNumber) {
+			if (bucketNumber < index->capacity)
+				bucketIterator = index->buckets[bucketNumber]->iterator();
 		}
 
-		explicit RawHashIndexIterator(const HashIndex<T> *index, uint32_t currentBucket = 0)
-				: index(index), bucketNumber(currentBucket) { updateIterators(); }
+		bool hasData() const { return bucketNumber < index->capacity; }
 
-		RawIndexIterator<T> *cloneNext() const {
-			auto clone = new RawHashIndexIterator(index, bucketNumber);
-			clone->move();
-			return clone;
-		}
-
-		bool hasNext() const { return bucketNumber < index->capacity; }
+		const T &data() const { return bucketIterator->data(); }
 
 		void move() {
 			// Current bucket has more elements
-			if (bucketIterator.hasNext()) ++bucketIterator;
+			if (bucketIterator->hasData()) bucketIterator->move();
 
 			// Move to next "different" bucket if the end of the current bucket is reached
-			if (!bucketIterator.hasNext()) {
+			if (!bucketIterator->hasData()) {
 				// Skip bucket pointers that point to the same actual bucket
 				Bucket *previousBucket;
 				do {
@@ -62,11 +53,22 @@ class HashIndex : public Index<T> {
 					previousBucket = index->buckets[bucketNumber++];
 				} while (previousBucket == index->buckets[bucketNumber]);
 				// There are still more buckets to iterate over
-				updateIterators();
+				if (bucketNumber < index->capacity)
+					bucketIterator = index->buckets[bucketNumber]->iterator();
 			}
 		}
 
-		const T &data() const { return *bucketIterator; }
+		std::unique_ptr<IndexIterator<T>> clone() const {
+			auto cl = std::make_unique<HashIndexIterator>(index, bucketNumber);
+			cl->bucketIterator = bucketIterator->clone();
+			return cl;
+		}
+
+		std::unique_ptr<IndexIterator<T>> cloneAndMove() const {
+			auto cl = clone();
+			cl->move();
+			return cl;
+		}
 	};
 
 public:
@@ -115,8 +117,8 @@ public:
 					buckets[i] = (i < middle) ? b1 : b2;
 
 				// Re-Hash every element in original bucket using the new global depth
-				for (auto i = 0; i < bucket->size(); i++) {
-					auto element = bucket->rawData()[i];
+				for (auto it = bucket->iterator(); it->hasData(); it->move()) {
+					auto element = it->data();
 					buckets[getBucketNum(element)]->put(element);
 				}
 				delete bucket;
@@ -132,5 +134,5 @@ public:
 
 	bool contains(const T &v) { return buckets[getBucketNum(v)]->contains(v); }
 
-	IndexIterator<T> iterator() const { return IndexIterator<T>(std::make_shared<RawHashIndexIterator>(this)); }
+	std::unique_ptr<IndexIterator<T>> iterator() const { return std::make_unique<HashIndexIterator>(this); }
 };

@@ -2,7 +2,20 @@
 
 #include <cstdint>
 #include <iostream>
-#include "IndexIterator.h"
+#include <memory>
+
+template<typename T>
+struct IndexIterator {
+	virtual bool hasData() const = 0;
+
+	virtual const T &data() const = 0;
+
+	virtual void move() = 0;
+
+	virtual std::unique_ptr<IndexIterator<T>> clone() const = 0;
+
+	virtual std::unique_ptr<IndexIterator<T>> cloneAndMove() const = 0;
+};
 
 // NOTE: Only meant for primitive and pointer types
 template<typename T>
@@ -25,5 +38,5 @@ public:
 
 	uint64_t size() const { return size_; }
 
-	virtual IndexIterator<T> iterator() const = 0;
+	virtual std::unique_ptr<IndexIterator<T>> iterator() const = 0;
 };
