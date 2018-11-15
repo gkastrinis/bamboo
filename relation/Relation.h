@@ -71,14 +71,20 @@ public:
 
 	void VPTtest() {
 		Relation<T> result(2);
+		int64_t values[2];
 		uint64_t counter = 0;
 		for (auto outerIt = topColumn.iterator(); outerIt->hasData(); outerIt->move())
 			for (auto it1 = outerIt->data().iterator(); it1->hasData(); it1->move())
-				for (auto it2 = it1->cloneAndMove(); it2->hasData(); it2->move()) {
+				for (auto it2 = outerIt->data().iterator(); it2->hasData(); it2->move()) {
+				//for (auto it2 = it1->cloneAndMove(); it2->hasData(); it2->move()) {
 					counter++;
-					if (counter % 10000000 == 0) std::cout << counter << std::endl;
+//					if (counter % 400000000 == 0) std::cout << counter << std::endl;
+					values[0] = it1->data().key;
+					values[1] = it2->data().key;
+					result.put(values);
 //					std::cout << it1->data() << " " << it2->data() << std::endl;
 				}
 		std::cout << "--> " << counter << std::endl;
+		std::cout << result.size() << std::endl;
 	}
 };

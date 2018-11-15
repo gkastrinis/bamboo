@@ -16,6 +16,7 @@ public:
 
 	static Column<T> mkColumn(const T &key) { return Column<T>(key, new ArrayIndex<Column<T>>()); }
 
+	// TODO check usage
 	void rmColumn() { delete values; }
 
 	uint64_t hashCode() const {
@@ -36,9 +37,11 @@ public:
 		try {
 			result = values->put(mkColumn(v));
 		} catch (int e) {
+//			std::cout << "NEW\n";
 			auto old = values;
 			values = new HashIndex<Column<T>>();
-			for (auto it = old->iterator(); it->hasData(); it->move()) values->put(it->data());
+			for (auto it = old->iterator(); it->hasData(); it->move())
+				values->put(it->data());
 			delete old;
 			result = values->put(mkColumn(v));
 		}

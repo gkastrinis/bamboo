@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
 		file >> values[0] >> values[1];
 		if (file.eof()) break;
 		r.put(values);
-		if (++counter == 100000) break;
+		if (++counter == 10000) break;
  	}
 	cout << "Total: " << r.size() << endl;
 //	r.print();
