@@ -19,14 +19,6 @@ public:
 	// TODO check usage
 	void rmColumn() { delete values; }
 
-	uint64_t hashCode() const {
-		uint64_t hash;
-		hash = (key ^ (key >> 30)) * UINT64_C(0xbf58476d1ce4e5b9);
-		hash = (hash ^ (hash >> 27)) * UINT64_C(0x94d049bb133111eb);
-		hash = hash ^ (hash >> 31);
-		return hash;
-	}
-
 	// Pointer to the (maybe new) element, and whether it is a new element
 	std::pair<Column<T> *, bool> put(const T &v) {
 		// Value is already in the index
@@ -47,6 +39,8 @@ public:
 		}
 		return result;
 	}
+
+	Column<T> *get(const T &v) { return values->get(Column<T>(v)); }
 
 	bool operator<(const Column<T> &rhs) const { return key < rhs.key; }
 

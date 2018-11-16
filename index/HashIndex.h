@@ -20,9 +20,17 @@ class HashIndex : public Index<T> {
 	uint8_t globalDepth;
 
 	uint64_t getBucketNum(const T &v) {
+		uint64_t key;
+		if constexpr (std::is_same_v<T, uint64_t> || std::is_same_v<T, int64_t>) key = v;
+		else key = v.key;
+
+		uint64_t hash;
+		hash = (key ^ (key >> 30)) * UINT64_C(0xbf58476d1ce4e5b9);
+		hash = (hash ^ (hash >> 27)) * UINT64_C(0x94d049bb133111eb);
+		hash = hash ^ (hash >> 31);
 		// (hash >> (64 - globalDepth): Check globalDepth most significant bits
 		// (1 << globalDepth) - 1: Create a bit string with 1 at the first globalDepth bits
-		return (v.hashCode() >> (64 - globalDepth)) & ((1 << globalDepth) - 1);
+		return (hash >> (64 - globalDepth)) & ((1 << globalDepth) - 1);
 	}
 
 	struct HashIndexIterator : public IndexIterator<T> {
