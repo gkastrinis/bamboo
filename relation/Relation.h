@@ -4,85 +4,81 @@
 #include "Column.h"
 
 template<typename T>
-struct Printer {
-	T *buffer;
-	uint8_t index;
-
-	explicit Printer(uint8_t arity) : buffer(new T[arity]), index(0) {}
-
-	~Printer() { delete[] buffer; }
-
-	void push(const T &v) { buffer[index++] = v; }
-
-	void pop() { if (index > 0) index--; }
-
-	void print() const {
-		for (auto i = 0; i < index; i++)
-			std::cout << buffer[i] << " ";
-		std::cout << std::endl;
-	}
-};
-
-template<typename T>
 class Relation {
 	uint8_t arity;
-	uint64_t size_;
-	Column<T> rootColumn;
+	// Number of indexing variations (different orderings in the relation's columns)
+	uint8_t variationsNum;
+	// A 2D array with all variations, flattened to 1D
+	// Zero based indexing; -1 indicates dropping remaining columns
+	int8_t *variations;
+	// Relation sizes for each variation (may differ due to variations dropping columns)
+	uint64_t *variationsSizes;
+	// Root column for each variation
+	Column<T> *rootColumns;
 
 public:
-	// NOTE: key value for rootColumn is not important
-	explicit Relation(uint8_t arity, bool *indexesToIgnore = nullptr)
-			: arity(arity), size_(0), rootColumn(Column<T>::mk(0)) {}
-
-	~Relation() { rootColumn.rm(); }
-
-	void put(T *values) {
-		auto anyNewInsertion = false;
-		auto currentColumn = &rootColumn;
-		for (auto i = 0; i < arity; i++) {
-			auto result = currentColumn->put(values[i]);
-			currentColumn = result.first;
-			anyNewInsertion |= result.second;
+	explicit Relation(uint8_t arity, uint8_t variationsNum, int8_t *variations)
+			: arity(arity), variationsNum(variationsNum), variations(variations) {
+		variationsSizes = new uint64_t[variationsNum];
+		rootColumns = new Column<T>[variationsNum];
+		// NOTE: key value for rootColumns is not important
+		for (auto i = 0; i < variationsNum; i++) {
+			variationsSizes[i] = 0;
+			rootColumns[i] = Column<T>::mk(0);
 		}
-		if (anyNewInsertion) size_++;
 	}
 
-	uint64_t size() const { return size_; }
+	~Relation() {
+		delete[] variationsSizes;
+		for (auto i = 0; i < variationsNum; i++) rootColumns[i].rm();
+		delete[] rootColumns;
+	}
+
+	void put(T *values) {
+		for (auto i = 0; i < variationsNum; i++) {
+			auto anyNewInsertion = false;
+			auto currentColumn = &rootColumns[i];
+			for (auto j = 0; j < arity; j++) {
+				auto index = variations[i * arity + j];
+				if (index < 0) break;
+				auto result = currentColumn->put(values[index]);
+				currentColumn = result.first;
+				anyNewInsertion |= result.second;
+			}
+			if (anyNewInsertion) variationsSizes[i]++;
+		}
+	}
+
+	uint64_t size(uint8_t i = 0) const { return variationsSizes[i]; }
+
+	Column<T> &variation(uint8_t i = 0) const { return rootColumns[i]; }
 
 	void print() {
-		Printer<T> printer(arity);
+		T *buffer = new T[arity];
+		uint8_t index = 0;
 		std::function<void(const Column<T> &)> rec;
 		rec = [&](const Column<T> &column) mutable {
 			if (column.values->size() == 0) {
-				printer.print();
+				for (auto i = 0; i < index; i++)
+					std::cout << buffer[i] << " ";
+				std::cout << std::endl;
 				return;
 			}
 			for (auto it = column.iterator(); it->hasData(); it->move()) {
-				printer.push(it->data().key);
+				buffer[index++] = it->data().key;
 				rec(it->data());
-				printer.pop();
+				if (index > 0) index--;
 			}
 		};
-		rec(rootColumn);
-	}
 
+		for (auto i = 0; i < variationsNum; i++) {
+			std::cout << "variation " << i << ": ";
+			for (auto j = 0; j < arity; j++)
+				std::cout << (int) variations[i * arity + j] << " ";
+			std::cout << "-- size: " << variationsSizes[i] << std::endl;
+			rec(rootColumns[i]);
+		}
 
-	void VPTtest() {
-		Relation<T> result(2);
-		int64_t values[2];
-		uint64_t counter = 0;
-		for (auto outerIt = rootColumn.iterator(); outerIt->hasData(); outerIt->move())
-			for (auto it1 = outerIt->data().iterator(); it1->hasData(); it1->move())
-				for (auto it2 = outerIt->data().iterator(); it2->hasData(); it2->move()) {
-					//for (auto it2 = it1->cloneAndMove(); it2->hasData(); it2->move()) {
-					counter++;
-//					if (counter % 400000000 == 0) std::cout << counter << std::endl;
-					values[0] = it1->data().key;
-					values[1] = it2->data().key;
-					result.put(values);
-//					std::cout << it1->data() << " " << it2->data() << std::endl;
-				}
-		std::cout << "--> " << counter << std::endl;
-		std::cout << result.size() << std::endl;
+		delete[] buffer;
 	}
 };
