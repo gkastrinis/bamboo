@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 #include "../../index/ArrayIndex.h"
 #include "../../relation/Column.h"
+#include "../../relation/Relation.h"
 
 TEST(basic_check, test_array) {
 	ArrayIndex<uint64_t> index;
-	uint64_t values[] = {100, 42, 80, 4, 10};
-	for (auto v : values) index.put(v);
+	for (auto v : (uint64_t[5]){100, 42, 80, 4, 10}) index.put(v);
 	EXPECT_EQ(index.size(), 5);
 	ASSERT_TRUE(index.contains(42));
 	ASSERT_FALSE(index.contains(43));
@@ -45,8 +45,7 @@ TEST(basic_check, test_array_custom_cap) {
 
 TEST(basic_check, test_hash) {
 	HashIndex<uint64_t> index;
-	uint64_t values[] = {100, 42, 80, 4, 10};
-	for (auto v : values) index.put(v);
+	for (auto v : (uint64_t[5]){100, 42, 80, 4, 10}) index.put(v);
 	EXPECT_EQ(index.size(), 5);
 	ASSERT_TRUE(index.contains(42));
 	ASSERT_FALSE(index.contains(43));
@@ -65,9 +64,8 @@ TEST(basic_check, test_hash) {
 }
 
 TEST(basic_check, test_column) {
-	auto column = Column<uint64_t>::mkColumn(0); // value is not important
-	uint64_t values[] = {100, 42, 80, 4, 10};
-	for (auto v : values) column.put(v);
+	auto column = Column<uint64_t>::mk(0); // value is not important
+	for (auto v : (uint64_t[5]){100, 42, 80, 4, 10}) column.put(v);
 	EXPECT_EQ(column.values->size(), 5);
 	EXPECT_NE(column.get(42), nullptr);
 	EXPECT_EQ(column.get(43), nullptr);

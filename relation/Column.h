@@ -14,10 +14,10 @@ public:
 
 	explicit Column() : values(nullptr) {}
 
-	static Column<T> mkColumn(const T &key) { return Column<T>(key, new ArrayIndex<Column<T>>()); }
+	static Column<T> mk(const T &key) { return Column<T>(key, new ArrayIndex<Column<T>>()); }
 
 	// TODO check usage
-	void rmColumn() { delete values; }
+	void rm() { if (values) delete values; }
 
 	// Pointer to the (maybe new) element, and whether it is a new element
 	std::pair<Column<T> *, bool> put(const T &v) {
@@ -27,7 +27,7 @@ public:
 
 		std::pair<Column<T> *, bool> result;
 		try {
-			result = values->put(mkColumn(v));
+			result = values->put(mk(v));
 		} catch (int e) {
 //			std::cout << "NEW\n";
 			auto old = values;
@@ -35,7 +35,7 @@ public:
 			for (auto it = old->iterator(); it->hasData(); it->move())
 				values->put(it->data());
 			delete old;
-			result = values->put(mkColumn(v));
+			result = values->put(mk(v));
 		}
 		return result;
 	}
