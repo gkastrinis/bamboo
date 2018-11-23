@@ -83,16 +83,3 @@ TEST(basic_check, column) {
 	it->move();
 	ASSERT_FALSE(it->hasData());
 }
-
-TEST(basic_check, relation) {
-	int8_t var[] = {0, 1, 2};
-	Relation<int64_t> r(3, 1, var);
-	int64_t values[] = {5, 10, 100};
-	r.put(values);
-	values[0] = 5;
-	values[1] = 20;
-	values[2] = 200;
-	r.put(values);
-
-	EXPECT_EQ(r.size(), 2);
-}

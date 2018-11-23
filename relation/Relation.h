@@ -1,45 +1,79 @@
 #pragma once
 
 #include <functional>
+#include <vector>
 #include "Column.h"
+
+struct Variations {
+	// A vector with all variations
+	// zero based indexing
+	// -1 indicates dropping the remaining columns
+	std::vector<std::vector<int8_t>> raw;
+
+	explicit Variations(uint8_t maxArity, std::initializer_list<std::initializer_list<int8_t>> variations = {}) {
+		// Default variation
+		auto variationIt = raw.insert(raw.end(), std::vector<int8_t>());
+		for (int8_t i = 0; i < maxArity; i++) variationIt->push_back(i);
+
+		for (auto variation : variations) {
+			// If true, all subsequent values must be negative (and be ignored)
+			auto mustBeNegative = false;
+
+			variationIt = raw.insert(raw.end(), std::vector<int8_t>());
+			for (auto v : variation) {
+				if (v >= maxArity) throw -2;
+				if (v < 0) {
+					mustBeNegative = true;
+					continue;
+				}
+				if (mustBeNegative) throw -3;
+				else variationIt->push_back(v);
+			}
+		}
+	}
+
+	uint8_t count() const { return (uint8_t) raw.size(); }
+};
 
 template<typename T>
 class Relation {
 	uint8_t arity;
-	// Number of indexing variations (different orderings in the relation's columns)
-	uint8_t variationsNum;
-	// A 2D array with all variations, flattened to 1D
-	// Zero based indexing; -1 indicates dropping remaining columns
-	int8_t *variations;
-	// Relation sizes for each variation (may differ due to variations dropping columns)
-	uint64_t *variationsSizes;
+	// Indexing variations (different column orderings)
+	Variations variations;
 	// Root column for each variation
 	Column<T> *rootColumns;
+	// Relation sizes for each variation (may differ due to variations dropping columns)
+	uint64_t *variationsSizes;
 
-public:
-	explicit Relation(uint8_t arity, uint8_t variationsNum, int8_t *variations)
-			: arity(arity), variationsNum(variationsNum), variations(variations) {
-		variationsSizes = new uint64_t[variationsNum];
+	void init() {
+		auto variationsNum = variations.count();
 		rootColumns = new Column<T>[variationsNum];
+		variationsSizes = new uint64_t[variationsNum];
 		// NOTE: key value for rootColumns is not important
 		for (auto i = 0; i < variationsNum; i++) {
-			variationsSizes[i] = 0;
 			rootColumns[i] = Column<T>::mk(0);
+			variationsSizes[i] = 0;
 		}
 	}
 
+public:
+	explicit Relation(uint8_t arity) : arity(arity), variations(arity) { init(); }
+
+	Relation(uint8_t arity, Variations &variations) : arity(arity), variations(variations) { init(); }
+
 	~Relation() {
-		delete[] variationsSizes;
-		for (auto i = 0; i < variationsNum; i++) rootColumns[i].rm();
+		for (uint8_t i = 0, variationsNum = variations.count(); i < variationsNum; i++)
+			rootColumns[i].rm();
 		delete[] rootColumns;
+		delete[] variationsSizes;
 	}
 
 	void put(T *values) {
-		for (auto i = 0; i < variationsNum; i++) {
+		for (uint8_t i = 0, variationsNum = variations.count(); i < variationsNum; i++) {
 			auto anyNewInsertion = false;
 			auto currentColumn = &rootColumns[i];
 			for (auto j = 0; j < arity; j++) {
-				auto index = variations[i * arity + j];
+				auto index = variations.raw[i][j];
 				if (index < 0) break;
 				auto result = currentColumn->put(values[index]);
 				currentColumn = result.first;
@@ -71,10 +105,10 @@ public:
 			}
 		};
 
-		for (auto i = 0; i < variationsNum; i++) {
+		for (uint8_t i = 0, variationsNum = variations.count(); i < variationsNum; i++) {
 			std::cout << "variation " << i << ": ";
 			for (auto j = 0; j < arity; j++)
-				std::cout << (int) variations[i * arity + j] << " ";
+				std::cout << (int) variations.raw[i][j] << " ";
 			std::cout << "-- size: " << variationsSizes[i] << std::endl;
 			rec(rootColumns[i]);
 		}
