@@ -58,15 +58,17 @@ public:
 
 	uint64_t sizeFor(uint8_t i) const { return variationSizes[i]; }
 
-	void print(uint8_t i) {
+	void print(uint8_t i, std::ostream &out = std::cout) {
 		T *buffer = new T[arity];
 		uint8_t index = 0;
 		std::function<void(const Column<T> &)> rec;
 		rec = [&](const Column<T> &column) mutable {
 			if (column.values->size() == 0) {
-				for (auto j = 0; j < index; j++)
-					std::cout << buffer[j] << " ";
-				std::cout << std::endl;
+				for (auto j = 0; j < index; j++) {
+					out << buffer[j];
+					if (j < index - 1) out << "\t";
+				}
+				out << std::endl;
 				return;
 			}
 			for (auto it = column.iterator(); it->hasData(); it->move()) {

@@ -28,7 +28,9 @@ int main(int argc, char **argv) {
 				values[1] = it2->data().key;
 				ALIAS.put(values);
 			}
-	cout << "--> " << counter << endl;
-	cout << ALIAS.sizeFor(0) << endl;
-	//ALIAS.print(0);
+	//cout << "--> " << counter << endl;
+	cout << "Result: " << ALIAS.sizeFor(0) << endl;
+
+	ofstream out("../Alias.txt");
+	ALIAS.print(0, out);
 }
