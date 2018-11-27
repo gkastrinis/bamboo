@@ -5,19 +5,20 @@
 #include "../index/HashIndex.h"
 
 template<typename T>
-class Column {
-	explicit Column(const T &key, Index<Column<T>> *values = nullptr) : key(key), values(values) {}
-
-public:
+struct Column {
 	T key;
 	Index<Column<T>> *values;
 
-	explicit Column() : values(nullptr) {}
+	explicit Column(const T &key = T(), Index<Column<T>> *values = nullptr) : key(key), values(values) {}
 
-	static Column<T> mk(const T &key) { return Column<T>(key, new ArrayIndex<Column<T>>()); }
+	void alloc() { values = new ArrayIndex<Column<T>>(); }
 
-	// TODO check usage
-	void rm() { if (values) delete values; }
+	void dealloc() {
+		if (values) {
+			delete values;
+			values = nullptr;
+		}
+	}
 
 	// Pointer to the (maybe new) element, and whether it is a new element
 	std::pair<Column<T> *, bool> put(const T &v) {
@@ -26,16 +27,16 @@ public:
 		if (columnPtr != nullptr) return {columnPtr, false};
 
 		std::pair<Column<T> *, bool> result;
+		Column<T> column(v, new ArrayIndex<Column<T>>());
 		try {
-			result = values->put(mk(v));
+			result = values->put(column);
 		} catch (int e) {
-//			std::cout << "NEW\n";
 			auto old = values;
 			values = new HashIndex<Column<T>>();
 			for (auto it = old->iterator(); it->hasData(); it->move())
 				values->put(it->data());
 			delete old;
-			result = values->put(mk(v));
+			result = values->put(column);
 		}
 		return result;
 	}

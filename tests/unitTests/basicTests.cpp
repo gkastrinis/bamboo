@@ -64,7 +64,8 @@ TEST(basic_check, hash) {
 }
 
 TEST(basic_check, column) {
-	auto column = Column<uint64_t>::mk(0); // value is not important
+	Column<uint64_t> column;
+	column.alloc();
 	for (auto v : (uint64_t[5]){100, 42, 80, 4, 10}) column.put(v);
 	EXPECT_EQ(column.values->size(), 5);
 	EXPECT_NE(column.get(42), nullptr);
@@ -82,4 +83,6 @@ TEST(basic_check, column) {
 	EXPECT_NE(column.get(100), nullptr);
 	it->move();
 	ASSERT_FALSE(it->hasData());
+
+	column.dealloc();
 }

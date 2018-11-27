@@ -55,27 +55,12 @@ class HashIndex : public Index<T> {
 			// Move to next "different" bucket if the end of the current bucket is reached
 			if (!bucketIterator->hasData()) {
 				// Skip bucket pointers that point to the same actual bucket
-				Bucket *previousBucket;
-				do {
-					if (bucketNumber == index->capacity) break;
-					previousBucket = index->buckets[bucketNumber++];
-				} while (previousBucket == index->buckets[bucketNumber]);
+				auto tmp = index->buckets[bucketNumber];
+				while (++bucketNumber < index->capacity && index->buckets[bucketNumber] == tmp);
 				// There are still more buckets to iterate over
 				if (bucketNumber < index->capacity)
 					bucketIterator = index->buckets[bucketNumber]->iterator();
 			}
-		}
-
-		std::unique_ptr<IndexIterator<T>> clone() const {
-			auto cl = std::make_unique<HashIndexIterator>(index, bucketNumber);
-			cl->bucketIterator = bucketIterator->clone();
-			return cl;
-		}
-
-		std::unique_ptr<IndexIterator<T>> cloneAndMove() const {
-			auto cl = clone();
-			cl->move();
-			return cl;
 		}
 	};
 
@@ -85,6 +70,16 @@ public:
 		buckets = new Bucket *[capacity];
 		buckets[0] = new Bucket();
 		buckets[1] = new Bucket();
+	}
+
+	~HashIndex() {
+		for (auto i = 0; i < capacity;) {
+			delete buckets[i];
+			auto tmp = buckets[i];
+			// Skip pointers pointing to same (deleted) bucket
+			while (buckets[++i] == tmp);
+		}
+		delete[] buckets;
 	}
 
 	std::pair<T *, bool> put(const T &v) {

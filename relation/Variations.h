@@ -9,7 +9,7 @@ struct Variations {
 	// -1 indicates dropping the remaining columns
 	std::vector<std::vector<int8_t>> raw;
 
-	explicit Variations(uint8_t maxArity, std::initializer_list<std::initializer_list<int8_t>> variations = {}) {
+	explicit Variations(uint8_t maxArity, std::initializer_list<std::initializer_list<int8_t>> variations) {
 		// Default variation
 		auto variationIt = raw.insert(raw.end(), std::vector<int8_t>());
 		for (int8_t i = 0; i < maxArity; i++) variationIt->push_back(i);

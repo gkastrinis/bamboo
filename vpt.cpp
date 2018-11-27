@@ -4,9 +4,8 @@
 using namespace std;
 
 int main(int argc, char **argv) {
-	Variations v1(2, {{0, 1},
-	                  {1, 0}});
-	Relation<int64_t> VPT(2, v1);
+	Relation<int64_t> VPT(2, {{0, 1},
+	                          {1, 0}});
 	ifstream file("../VPT.csv"); // Value x Var
 	int64_t values[2];
 	auto counter = 0;
@@ -16,21 +15,20 @@ int main(int argc, char **argv) {
 		VPT.put(values);
 		if (++counter == 100) break;
 	}
-	cout << "Total: " << VPT.size() << endl;
+	cout << "Total: " << VPT.sizeFor(0) << endl;
 
 	Relation<int64_t> ALIAS(2);
 	counter = 0;
-	auto &vptVarValue = VPT.variation(1);
+	auto &vptVarValue = VPT.rootFor(1);
 	for (auto outerIt = vptVarValue.iterator(); outerIt->hasData(); outerIt->move())
 		for (auto it1 = outerIt->data().iterator(); it1->hasData(); it1->move())
 			for (auto it2 = outerIt->data().iterator(); it2->hasData(); it2->move()) {
-				//for (auto it2 = it1->cloneAndMove(); it2->hasData(); it2->move()) {
 				counter++;
-//				if (counter % 400000000 == 0) cout << counter << endl;
 				values[0] = it1->data().key;
 				values[1] = it2->data().key;
 				ALIAS.put(values);
 			}
 	cout << "--> " << counter << endl;
-	cout << ALIAS.size() << endl;
+	cout << ALIAS.sizeFor(0) << endl;
+	//ALIAS.print(0);
 }

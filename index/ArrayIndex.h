@@ -41,14 +41,6 @@ class ArrayIndex : public Index<T> {
 		const T &data() const { return index->buffer[pos]; }
 
 		void move() { pos++; }
-
-		std::unique_ptr<IndexIterator<T>> clone() const {
-			return std::make_unique<ArrayIndexIterator>(index, (uint16_t) pos);
-		}
-
-		std::unique_ptr<IndexIterator<T>> cloneAndMove() const {
-			return std::make_unique<ArrayIndexIterator>(index, (uint16_t) (pos + 1));
-		}
 	};
 
 public:
@@ -70,18 +62,18 @@ public:
 			if (capacity >= maxCapacity) throw -1;
 			capacity *= 2;
 			// Hack: Overflow to max value for the given int size
-			if (capacity == 0) capacity = -1;
+			if (capacity == 0) capacity = ~0;
 
 			T *tmp = new T[capacity];
 			std::memcpy(tmp, buffer, sizeof(T) * i);
 			tmp[i] = v;
-			std::memcpy(tmp + i + 1, buffer + i, sizeof(T) * (this->size_ - i));
+			std::memcpy(tmp + i + 1, buffer + i, sizeof(T) * ((size_t) this->size_ - i));
 			this->size_++;
 			auto old = buffer;
 			buffer = tmp;
 			delete[] old;
 		} else {
-			std::memmove(buffer + i + 1, buffer + i, sizeof(T) * (this->size_ - i));
+			std::memmove(buffer + i + 1, buffer + i, sizeof(T) * ((size_t) this->size_ - i));
 			buffer[i] = v;
 			this->size_++;
 		}

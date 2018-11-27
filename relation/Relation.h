@@ -11,30 +11,32 @@ class Relation {
 	Variations variations;
 	// Root column for each variation
 	Column<T> *rootColumns;
-	// Relation sizes for each variation (may differ due to variations dropping columns)
-	uint64_t *variationsSizes;
+	// Relation size for each variation (may differ due to variations dropping columns)
+	uint64_t *variationSizes;
 
-	void init() {
-		auto variationsNum = variations.count();
-		rootColumns = new Column<T>[variationsNum];
-		variationsSizes = new uint64_t[variationsNum];
-		// NOTE: key value for rootColumns is not important
-		for (auto i = 0; i < variationsNum; i++) {
-			rootColumns[i] = Column<T>::mk(0);
-			variationsSizes[i] = 0;
+public:
+	explicit Relation(uint8_t arity, std::initializer_list<std::initializer_list<int8_t>> variationList = {})
+			: arity(arity), variations(arity, variationList) {
+		auto count = variations.count();
+		rootColumns = new Column<T>[count];
+		variationSizes = new uint64_t[count];
+		for (auto i = 0; i < count; i++) {
+			rootColumns[i].alloc();
+			variationSizes[i] = 0;
 		}
 	}
 
-public:
-	explicit Relation(uint8_t arity) : arity(arity), variations(arity) { init(); }
-
-	Relation(uint8_t arity, Variations &variations) : arity(arity), variations(variations) { init(); }
-
 	~Relation() {
-		for (uint8_t i = 0, variationsNum = variations.count(); i < variationsNum; i++)
-			rootColumns[i].rm();
+		std::function<void(const Column<T> &)> rec;
+		rec = [&](Column<T> column) {
+			for (auto it = column.iterator(); it->hasData(); it->move())
+				rec(it->data());
+			column.dealloc();
+		};
+		for (auto i = 0, count = (int) variations.count(); i < count; i++)
+			rec(rootColumns[i]);
 		delete[] rootColumns;
-		delete[] variationsSizes;
+		delete[] variationSizes;
 	}
 
 	void put(T *values) {
@@ -48,22 +50,22 @@ public:
 				currentColumn = result.first;
 				anyNewInsertion |= result.second;
 			}
-			if (anyNewInsertion) variationsSizes[i]++;
+			if (anyNewInsertion) variationSizes[i]++;
 		}
 	}
 
-	uint64_t size(uint8_t i = 0) const { return variationsSizes[i]; }
+	const Column<T> &rootFor(uint8_t i) const { return rootColumns[i]; }
 
-	Column<T> &variation(uint8_t i = 0) const { return rootColumns[i]; }
+	uint64_t sizeFor(uint8_t i) const { return variationSizes[i]; }
 
-	void print() {
+	void print(uint8_t i) {
 		T *buffer = new T[arity];
 		uint8_t index = 0;
 		std::function<void(const Column<T> &)> rec;
 		rec = [&](const Column<T> &column) mutable {
 			if (column.values->size() == 0) {
-				for (auto i = 0; i < index; i++)
-					std::cout << buffer[i] << " ";
+				for (auto j = 0; j < index; j++)
+					std::cout << buffer[j] << " ";
 				std::cout << std::endl;
 				return;
 			}
@@ -73,15 +75,7 @@ public:
 				if (index > 0) index--;
 			}
 		};
-
-		for (uint8_t i = 0, variationsNum = variations.count(); i < variationsNum; i++) {
-			std::cout << "variation " << i << ": ";
-			for (auto j = 0; j < arity; j++)
-				std::cout << (int) variations.raw[i][j] << " ";
-			std::cout << "-- size: " << variationsSizes[i] << std::endl;
-			rec(rootColumns[i]);
-		}
-
+		rec(rootColumns[i]);
 		delete[] buffer;
 	}
 };

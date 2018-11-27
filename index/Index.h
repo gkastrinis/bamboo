@@ -11,10 +11,6 @@ struct IndexIterator {
 	virtual const T &data() const = 0;
 
 	virtual void move() = 0;
-
-	virtual std::unique_ptr<IndexIterator<T>> clone() const = 0;
-
-	virtual std::unique_ptr<IndexIterator<T>> cloneAndMove() const = 0;
 };
 
 // NOTE: Only meant for primitive and pointer types
