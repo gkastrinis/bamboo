@@ -39,7 +39,8 @@ public:
 		delete[] variationSizes;
 	}
 
-	void put(T *values) {
+	bool put(T *values) {
+		auto insertedInDefault = false;
 		for (uint8_t i = 0, variationsNum = variations.count(); i < variationsNum; i++) {
 			auto anyNewInsertion = false;
 			auto currentColumn = &rootColumns[i];
@@ -51,7 +52,9 @@ public:
 				anyNewInsertion |= result.second;
 			}
 			if (anyNewInsertion) variationSizes[i]++;
+			if (i == 0) insertedInDefault = anyNewInsertion;
 		}
+		return insertedInDefault;
 	}
 
 	const Column<T> &rootFor(uint8_t i) const { return rootColumns[i]; }

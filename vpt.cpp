@@ -1,36 +1,46 @@
 #include <fstream>
+#include <ctime>
 #include "relation/Relation.h"
 
 using namespace std;
 
 int main(int argc, char **argv) {
-	Relation<int64_t> VPT(2, {{0, 1},
-	                          {1, 0}});
+	double startTime, endTime;
+
+	startTime = ((double) clock()) / CLOCKS_PER_SEC;
+	Relation<int64_t> VPT(2, {{1, 0}});
 	ifstream file("../VPT.csv"); // Value x Var
 	int64_t values[2];
 	auto counter = 0;
 	while (true) {
-		file >> values[1] >> values[0]; // Var x Value
+		file >> values[0] >> values[1];
 		if (file.eof()) break;
 		VPT.put(values);
-		if (++counter == 100) break;
+		if (++counter == 30000) break;
 	}
-	cout << "Total: " << VPT.sizeFor(0) << endl;
+	endTime = ((double) clock()) / CLOCKS_PER_SEC;
+	cout << "VPT elapsed: " << endTime - startTime << endl;
+	//cout << "Total: " << VPT.sizeFor(0) << endl;
 
+	startTime = ((double) clock()) / CLOCKS_PER_SEC;
+	std::FILE *f = std::fopen("../Alias.dat", "wb");
 	Relation<int64_t> ALIAS(2);
 	counter = 0;
-	auto &vptVarValue = VPT.rootFor(1);
+	auto &vptVarValue = VPT.rootFor(0);
 	for (auto outerIt = vptVarValue.iterator(); outerIt->hasData(); outerIt->move())
 		for (auto it1 = outerIt->data().iterator(); it1->hasData(); it1->move())
 			for (auto it2 = outerIt->data().iterator(); it2->hasData(); it2->move()) {
 				counter++;
 				values[0] = it1->data().key;
 				values[1] = it2->data().key;
-				ALIAS.put(values);
+				if (ALIAS.put(values))
+					std::fwrite(values, sizeof(int64_t), 2, f);
+					//std::fprintf(f, "%d\t%d\n", values[0], values[1]);
 			}
 	//cout << "--> " << counter << endl;
-	cout << "Result: " << ALIAS.sizeFor(0) << endl;
+	//cout << "Result: " << ALIAS.sizeFor(0) << endl;
+	std::fclose(f);
 
-	ofstream out("../Alias.txt");
-	ALIAS.print(0, out);
+	endTime = ((double) clock()) / CLOCKS_PER_SEC;
+	cout << "Alias elapsed: " << endTime - startTime << endl;
 }
