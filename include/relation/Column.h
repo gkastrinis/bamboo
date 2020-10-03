@@ -53,4 +53,11 @@ struct Column {
 		os << "Column with key: " << col.key;
 		return os;
 	}
+
+	uint64_t hash() const {
+		if constexpr (std::is_same_v<T, uint64_t> || std::is_same_v<T, int64_t>)
+			return HashIndex<T>::hash_UINT64(key);
+		else
+			return key.hash();
+	}
 };

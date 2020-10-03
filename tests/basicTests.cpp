@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
-#include "../../index/ArrayIndex.h"
-#include "../../relation/Column.h"
-#include "../../relation/Relation.h"
+#include "../index/ArrayIndex.h"
+#include "../relation/Column.h"
+#include "../relation/Relation.h"
 
 TEST(basic_check, array) {
-	ArrayIndex<uint64_t> index;
-	for (auto v : (uint64_t[5]){100, 42, 80, 4, 10}) index.put(v);
+	ArrayIndex <uint64_t> index;
+	for (auto v : (uint64_t[5]) {100, 42, 80, 4, 10}) index.put(v);
 	EXPECT_EQ(index.size(), 5);
 	ASSERT_TRUE(index.contains(42));
 	ASSERT_FALSE(index.contains(43));

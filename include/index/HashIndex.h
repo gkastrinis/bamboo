@@ -19,15 +19,14 @@ class HashIndex : public Index<T> {
 	// Denotes how many bits are used for hashing
 	uint8_t globalDepth;
 
+	// If T is not UINT64/INT64 then it should provide a `hash` function
 	uint64_t getBucketNum(const T &v) {
-		uint64_t key;
-		if constexpr (std::is_same_v<T, uint64_t> || std::is_same_v<T, int64_t>) key = v;
-		else key = v.key;
-
 		uint64_t hash;
-		hash = (key ^ (key >> 30)) * UINT64_C(0xbf58476d1ce4e5b9);
-		hash = (hash ^ (hash >> 27)) * UINT64_C(0x94d049bb133111eb);
-		hash = hash ^ (hash >> 31);
+		if constexpr (std::is_same_v<T, uint64_t> || std::is_same_v<T, int64_t>)
+			hash = hash_UINT64(v);
+		else
+			hash = v.hash();
+
 		// (hash >> (64 - globalDepth): Check globalDepth most significant bits
 		// (1 << globalDepth) - 1: Create a bit string with 1 at the first globalDepth bits
 		return (hash >> (64 - globalDepth)) & ((1 << globalDepth) - 1);
@@ -138,4 +137,13 @@ public:
 	bool contains(const T &v) { return buckets[getBucketNum(v)]->contains(v); }
 
 	std::unique_ptr<IndexIterator<T>> iterator() const { return std::make_unique<HashIndexIterator>(this); }
+
+
+	static uint64_t hash_UINT64(uint64_t key) {
+		uint64_t hash;
+		hash = (key ^ (key >> 30)) * UINT64_C(0xbf58476d1ce4e5b9);
+		hash = (hash ^ (hash >> 27)) * UINT64_C(0x94d049bb133111eb);
+		hash = hash ^ (hash >> 31);
+		return hash;
+	}
 };

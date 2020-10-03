@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
 
 	startTime = ((double) clock()) / CLOCKS_PER_SEC;
 	Relation<int64_t> VPT(2, {{1, 0}});
-	ifstream file("../VPT.csv"); // Value x Var
+	ifstream file("../_testIN/VPTtest.csv"); // Value x Var
 	int64_t values[2];
 	auto counter = 0;
 	while (true) {
@@ -23,7 +23,7 @@ int main(int argc, char **argv) {
 	//cout << "Total: " << VPT.sizeFor(0) << endl;
 
 	startTime = ((double) clock()) / CLOCKS_PER_SEC;
-	std::FILE *f = std::fopen("../Alias.dat", "wb");
+	std::FILE *f = std::fopen("../_testOUT/Alias.dat", "wb");
 	Relation<int64_t> ALIAS(2);
 	counter = 0;
 	auto &vptVarValue = VPT.rootFor(0);
