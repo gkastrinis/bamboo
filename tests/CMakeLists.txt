@@ -25,6 +25,10 @@ macro(package_add_test TESTNAME)
 			PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${PROJECT_DIR}"
 			)
 	set_target_properties(${TESTNAME} PROPERTIES FOLDER tests)
+
+	target_include_directories(${TESTNAME} PUBLIC "../include")
 endmacro()
 
-package_add_test(runTests basicTests.cpp advancedTests.cpp)
+package_add_test(runBasicTests basicTests.cpp)
+
+package_add_test(runAdvancedTests advancedTests.cpp)

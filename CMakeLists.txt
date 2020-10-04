@@ -10,10 +10,6 @@ set(CMAKE_CXX_STANDARD 17)
 add_executable(VPT apps/vpt.cpp)
 
 target_include_directories(VPT PUBLIC include)
-#		"include/index"
-#		"include/relation"
-#		"include/string"
-#		)
 
 option(PACKAGE_TESTS "Build the tests" ON)
 

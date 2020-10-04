@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../relation/Relation.h"
+#include "relation/Relation.h"
 
 TEST(advanced_check, relation) {
 	Relation<int64_t> r(3);
