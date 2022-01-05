@@ -7,9 +7,14 @@ project(bamboo
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(VPT apps/vpt.cpp)
+# Let's ensure -std=c++xx instead of -std=g++xx
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-target_include_directories(VPT PUBLIC include)
+# The compiled library code is here
+#add_subdirectory(src)
+
+# The executable code is here
+add_subdirectory(apps)
 
 option(PACKAGE_TESTS "Build the tests" ON)
 

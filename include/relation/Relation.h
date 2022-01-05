@@ -6,6 +6,7 @@
 
 template<typename T>
 class Relation {
+	std::string name;
 	uint8_t arity;
 	// Indexing variations (different column orderings)
 	Variations variations;
@@ -15,8 +16,8 @@ class Relation {
 	uint64_t *variationSizes;
 
 public:
-	explicit Relation(uint8_t arity, std::initializer_list<std::initializer_list<int8_t>> variationList = {})
-			: arity(arity), variations(arity, variationList) {
+	explicit Relation(std::string name, uint8_t arity, std::initializer_list<std::initializer_list<int8_t>> variationList = {{1, 0}})//{})
+			: name(name), arity(arity), variations(arity, variationList) {
 		auto count = variations.count();
 		rootColumns = new Column<T>[count];
 		variationSizes = new uint64_t[count];

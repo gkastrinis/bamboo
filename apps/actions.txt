@@ -1,0 +1,3 @@
+2 1
+0 VarPointsTo 2 u64 u64 < ../../_testIN/VPTtest.csv
+1 Alias 2 u64 u64 > ../../_testOUT/Alias.dat
